@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Life Log (スキンケア・食事・運動)</title>
+    <style>
+        :root {
+            --primary-color: #6b8e23;
+            --bg-color: #f7f9fa;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --border-color: #ddd;
+        }
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        h1 { font-size: 1.5rem; color: var(--primary-color); margin: 0; }
+        
+        /* ボタン共通 */
+        button {
+            cursor: pointer;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 16px;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        .btn-main { background-color: var(--primary-color); color: white; }
+        .btn-main:hover { background-color: #55721c; }
+        .btn-sub { background-color: #e0e0e0; color: #333; }
+        .btn-sub:hover { background-color: #d0d0d0; }
+
+        /* カレンダー */
+        .calendar-container {
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            text-align: center;
+        }
+        .day-name { font-weight: bold; font-size: 0.8rem; color: #666; padding-bottom: 5px; }
+        .day {
+            padding: 10px 0;
+            background: #f9f9f9;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .day:hover { background: #eef2e6; }
+        .day.selected { background: var(--primary-color); color: white; font-weight: bold; }
+        .day.has-data::after {
+            content: '●';
+            display: block;
+            font-size: 0.6rem;
+            color: #ff8c00;
+            line-height: 0.5;
+        }
+        .day.selected.has-data::after { color: white; }
+
+        /* 詳細・編集エリア */
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .date-title {
+            font-size: 1.2rem;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 5px;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        .section-title {
+            font-size: 1rem;
+            color: #444;
+            margin-top: 15px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+        .section-title::before {
+            content: '■';
+            color: var(--primary-color);
+            margin-right: 6px;
+            font-size: 0.8rem;
+        }
+
+        /* 閲覧モード表示 */
+        .view-list { padding-left: 20px; margin: 5px 0; font-size: 0.95rem; }
+        .view-list li { margin-bottom: 4px; }
+        .no-data { color: #999; font-style: italic; font-size: 0.9rem; padding-left: 20px; }
+
+        /* 編集モード テーブル */
+        table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+        th { text-align: left; font-size: 0.85rem; color: #666; padding: 4px; }
+        td { padding: 4px 2px; }
+        input[type="text"] {
+            width: 100%;
+            padding: 6px;
+            box-sizing: border-box;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        input[type="text"]:focus { border-color: var(--primary-color); outline: none; }
+        .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+        
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>🌿 Life Log Note</h1>
+        <button id="btn-register" class="btn-main">[+登録]</button>
+    </header>
+
+    <!-- カレンダー部分 -->
+    <div class="calendar-container">
+        <div class="calendar-header">
+            <button id="btn-prev" class="btn-sub">◀</button>
+            <span id="calendar-month" style="font-weight: bold;"></span>
+            <button id="btn-next" class="btn-sub">▶</button>
+        </div>
+        <div class="calendar-grid" id="calendar-grid"></div>
+    </div>
+
+    <!-- 詳細表示・編集カード -->
+    <div class="card">
+        <h2 id="selected-date-label" class="date-title">日付を選択してください</h2>
+        
+        <!-- 1. 閲覧用エリア -->
+        <div id="view-mode">
+            <div class="section-title">スキンケア</div>
+            <ul id="view-skincare" class="view-list"></ul>
+            
+            <div class="section-title">食事</div>
+            <ul id="view-meal" class="view-list"></ul>
+            
+            <div class="section-title">運動</div>
+            <ul id="view-exercise" class="view-list"></ul>
+        </div>
+
+        <!-- 2. 編集用エリア -->
+        <div id="edit-mode" class="hidden">
+            <form id="log-form">
+                <div class="section-title">スキンケア</div>
+                <table>
+                    <thead>
+                        <tr><th style="width: 40%;">化粧品名</th><th style="width: 25%;">使用量</th><th style="width: 35%;">備考</th></tr>
+                    </thead>
+                    <tbody id="input-skincare-rows"></tbody>
+                </table>
+
+                <div class="section-title">食事</div>
+                <table>
+                    <thead>
+                        <tr><th style="width: 40%;">メニュー</th><th style="width: 25%;">時間/量</th><th style="width: 35%;">備考</th></tr>
+                    </thead>
+                    <tbody id="input-meal-rows"></tbody>
+                </table>
+
+                <div class="section-title">運動</div>
+                <table>
+                    <thead>
+                        <tr><th style="width: 40%;">種目</th><th style="width: 25%;">時間/回数</th><th style="width: 35%;">備考</th></tr>
+                    </thead>
+                    <tbody id="input-exercise-rows"></tbody>
+                </table>
+
+                <div class="form-actions">
+                    <button type="button" id="btn-cancel" class="btn-sub">キャンセル</button>
+                    <button type="submit" class="btn-main">保存する</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- 状態管理 ---
+    let currentDate = new Date(); // カレンダー表示用
+    let selectedDateStr = getFormattedDate(new Date()); // 選択中の日付 (YYYY-MM-DD)
+    let logs = JSON.parse(localStorage.getItem('lifeLogs')) || {};
+
+    // --- 初期化 ---
+    document.addEventListener('DOMContentLoaded', () => {
+        renderCalendar();
+        selectDate(selectedDateStr);
+
+        // イベントリスナー
+        document.getElementById('btn-prev').addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); });
+        document.getElementById('btn-next').addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); });
+        document.getElementById('btn-register').addEventListener('click', enterEditMode);
+        document.getElementById('btn-cancel').addEventListener('click', exitEditMode);
+        document.getElementById('log-form').addEventListener('submit', saveLog);
+    });
+
+    // 日付フォーマットユーティリティ (YYYY-MM-DD)
+    function getFormattedDate(date) {
+        return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+    }
+
+    // --- カレンダー描画 ---
+    function renderCalendar() {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        document.getElementById('calendar-month').innerText = `${year}年 ${month + 1}月`;
+
+        const grid = document.getElementById('calendar-grid');
+        grid.innerHTML = '';
+
+        // 曜日のヘッダー
+        const weeks = ['日', '月', '火', '水', '木', '金', '土'];
+        weeks.forEach(w => {
+            const el = document.createElement('div');
+            el.className = 'day-name';
+            el.innerText = w;
+            grid.appendChild(el);
+        });
+
+        // 月の初日と総日数
+        const firstDay = new Date(year, month, 1).getDay();
+        const numDays = new Date(year, month + 1, 0).getDate();
+
+        // 空白埋め
+        for (let i = 0; i < firstDay; i++) {
+            grid.appendChild(document.createElement('div'));
+        }
+
+        // 日付マス作成
+        for (let date = 1; date <= numDays; date++) {
+            const dayEl = document.createElement('div');
+            dayEl.className = 'day';
+            dayEl.innerText = date;
+
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
+            dayEl.dataset.date = dateStr;
+
+            // データが存在するかチェック
+            if (logs[dateStr] && (logs[dateStr].skincare.length > 0 || logs[dateStr].meal.length > 0 || logs[dateStr].exercise.length > 0)) {
+                dayEl.classList.add('has-data');
+            }
+
+            if (dateStr === selectedDateStr) {
+                dayEl.classList.add('selected');
+            }
+
+            dayEl.addEventListener('click', () => selectDate(dateStr));
+            grid.appendChild(dayEl);
+        }
+    }
+
+    // --- 日付選択処理 ---
+    function selectDate(dateStr) {
+        selectedDateStr = dateStr;
+        document.querySelectorAll('.day').forEach(el => el.classList.remove('selected'));
+        const activeDay = document.querySelector(`.day[data-date="${dateStr}"]`);
+        if (activeDay) activeDay.classList.add('selected');
+
+        // タイ変更
+        const d = new Date(dateStr);
+        document.getElementById('selected-date-label').innerText = `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日の記録`;
+
+        exitEditMode(); // 日付を変えたら閲覧モードに戻す
+        renderViewMode();
+    }
+
+    // --- 閲覧モードの描画 ---
+    function renderViewMode() {
+        const dayData = logs[selectedDateStr] || { skincare: [], meal: [], exercise: [] };
+        
+        renderSectionView('view-skincare', dayData.skincare, ['化粧品名', '使用量', '備考']);
+        renderSectionView('view-meal', dayData.meal, ['メニュー', '量/時間', '備考']);
+        renderSectionView('view-exercise', dayData.exercise, ['種目', '時間/回数', '備考']);
+    }
+
+    function renderSectionView(elementId, dataArray, placeholders) {
+        const ul = document.getElementById(elementId);
+        ul.innerHTML = '';
+        if (!dataArray || dataArray.length === 0) {
+            ul.innerHTML = '<span class="no-data">記載なし</span>';
+            return;
+        }
+        dataArray.forEach(item => {
+            const li = document.createElement('li');
+            // 値が入っているものだけ結合して綺麗に表示
+            const parts = [item.col1, item.col2, item.col3].filter(p => p && p.trim() !== '');
+            li.innerText = parts.join(' ｜ ');
+            ul.appendChild(li);
+        });
+    }
+
+    // --- 編集モードへの移行 ---
+    function enterEditMode() {
+        document.getElementById('view-mode').classList.add('hidden');
+        document.getElementById('edit-mode').classList.remove('hidden');
+        document.getElementById('btn-register').classList.add('hidden');
+
+        const dayData = logs[selectedDateStr] || { skincare: [], meal: [], exercise: [] };
+
+        // 各セクションの入力欄をセットアップ
+        setupInputRows('input-skincare-rows', dayData.skincare);
+        setupInputRows('input-meal-rows', dayData.meal);
+        setupInputRows('input-exercise-rows', dayData.exercise);
+    }
+
+    function exitEditMode() {
+        document.getElementById('view-mode').classList.remove('hidden');
+        document.getElementById('edit-mode').classList.add('hidden');
+        document.getElementById('btn-register').classList.remove('hidden');
+    }
+
+    // --- 自動で行が増える入力欄の生成ロジック ---
+    function setupInputRows(tbodyId, existingData) {
+        const tbody = document.getElementById(tbodyId);
+        tbody.innerHTML = '';
+
+        // 既存データがある場合はそれを展開
+        if (existingData && existingData.length > 0) {
+            existingData.forEach(data => addInputRow(tbody, data));
+        }
+        // 最低1行（または次の新規入力用空行）を追加
+        addInputRow(tbody);
+    }
+
+    function addInputRow(tbody, data = { col1: '', col2: '', col3: '' }) {
+        const tr = document.createElement('tr');
+        tr.className = 'input-row';
+        tr.innerHTML = `
+            <td><input type="text" class="col1" value="${data.col1}" placeholder="入力..."></td>
+            <td><input type="text" class="col2" value="${data.col2}" placeholder="入力..."></td>
+            <td><input type="text" class="col3" value="${data.col3}" placeholder="入力..."></td>
+        `;
+
+        // どの入力欄でも、文字が打ち込まれたら次の行を自動生成するイベントを設定
+        const inputs = tr.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('input', () => {
+                // この行が現在所属するテーブルの「最終行」かつ「何かしら文字が入った」場合
+                if (tr === tbody.lastElementChild && (inputs[0].value || inputs[1].value || inputs[2].value)) {
+                    addInputRow(tbody); // 次の空行をドカンと追加
+                }
+            });
+        });
+
+        tbody.appendChild(tr);
+    }
+
+    // --- データの保存 ---
+    function saveLog(e) {
+        e.preventDefault();
+
+        // 各セクションからデータ回収（最後の空行などは除外するフィルター付き）
+        const skincare = collectRowData('input-skincare-rows');
+        const meal = collectRowData('input-meal-rows');
+        const exercise = collectRowData('input-exercise-rows');
+
+        // オブジェクトに格納して保存
+        logs[selectedDateStr] = { skincare, meal, exercise };
+        localStorage.setItem('lifeLogs', JSON.stringify(logs));
+
+        // 表示の更新
+        exitEditMode();
+        renderViewMode();
+        renderCalendar(); // 点(●)をつけるために再描画
+    }
+
+    function collectRowData(tbodyId) {
+        const rows = document.querySelectorAll(`#${tbodyId} .input-row`);
+        const data = [];
+        rows.forEach(row => {
+            const col1 = row.querySelector('.col1').value.trim();
+            const col2 = row.querySelector('.col2').value.trim();
+            const col3 = row.querySelector('.col3').value.trim();
+            
+            // 3つのうちどれか1つでも入力があれば保存対象にする
+            if (col1 || col2 || col3) {
+                data.push({ col1, col2, col3 });
+            }
+        });
+        return data;
+    }
+</script>
+
+</body>
+</html>
