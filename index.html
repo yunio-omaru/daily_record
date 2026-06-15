@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Life Log (スキンケア・食事・運動)</title>
+    <title>My Life Log (朝・昼・晩対応版)</title>
     <style>
         :root {
             --primary-color: #6b8e23;
@@ -31,14 +31,13 @@
         }
         h1 { font-size: 1.5rem; color: var(--primary-color); margin: 0; }
         
-        /* ボタン共通 */
         button {
             cursor: pointer;
             border: none;
             border-radius: 6px;
             padding: 8px 16px;
             font-weight: bold;
-            transition: background 0.2s;
+            transition: all 0.2s;
         }
         .btn-main { background-color: var(--primary-color); color: white; }
         .btn-main:hover { background-color: #55721c; }
@@ -83,6 +82,25 @@
             line-height: 0.5;
         }
         .day.selected.has-data::after { color: white; }
+
+        /* 時間帯切り替えタブ */
+        .time-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 5px;
+        }
+        .tab-btn {
+            background: #e0e0e0;
+            color: #666;
+            padding: 6px 20px;
+            border-radius: 4px 4px 0 0;
+        }
+        .tab-btn.active {
+            background: var(--primary-color);
+            color: white;
+        }
 
         /* 詳細・編集エリア */
         .card {
@@ -144,7 +162,6 @@
         <button id="btn-register" class="btn-main">[+登録]</button>
     </header>
 
-    <!-- カレンダー部分 -->
     <div class="calendar-container">
         <div class="calendar-header">
             <button id="btn-prev" class="btn-sub">◀</button>
@@ -154,11 +171,15 @@
         <div class="calendar-grid" id="calendar-grid"></div>
     </div>
 
-    <!-- 詳細表示・編集カード -->
     <div class="card">
         <h2 id="selected-date-label" class="date-title">日付を選択してください</h2>
         
-        <!-- 1. 閲覧用エリア -->
+        <div class="time-tabs">
+            <button class="tab-btn active" data-time="morning">朝</button>
+            <button class="tab-btn" data-time="afternoon">昼</button>
+            <button class="tab-btn" data-time="night">晩</button>
+        </div>
+
         <div id="view-mode">
             <div class="section-title">スキンケア</div>
             <ul id="view-skincare" class="view-list"></ul>
@@ -170,7 +191,6 @@
             <ul id="view-exercise" class="view-list"></ul>
         </div>
 
-        <!-- 2. 編集用エリア -->
         <div id="edit-mode" class="hidden">
             <form id="log-form">
                 <div class="section-title">スキンケア</div>
@@ -206,26 +226,59 @@
     </div>
 </div>
 
+<datalist id="suggest-skincare-col1"></datalist>
+<datalist id="suggest-skincare-col2"></datalist>
+<datalist id="suggest-skincare-col3"></datalist>
+<datalist id="suggest-meal-col1"></datalist>
+<datalist id="suggest-meal-col2"></datalist>
+<datalist id="suggest-meal-col3"></datalist>
+<datalist id="suggest-exercise-col1"></datalist>
+<datalist id="suggest-exercise-col2"></datalist>
+<datalist id="suggest-exercise-col3"></datalist>
+
 <script>
     // --- 状態管理 ---
-    let currentDate = new Date(); // カレンダー表示用
-    let selectedDateStr = getFormattedDate(new Date()); // 選択中の日付 (YYYY-MM-DD)
+    let currentDate = new Date();
+    let selectedDateStr = getFormattedDate(new Date());
+    let activeTime = 'morning'; // 現在選択中の時間帯 ('morning', 'afternoon', 'night')
+    
     let logs = JSON.parse(localStorage.getItem('lifeLogs')) || {};
+    let words = JSON.parse(localStorage.getItem('lifeLogWords')) || {
+        skincare: { col1: [], col2: [], col3: [] },
+        meal: { col1: [], col2: [], col3: [] },
+        exercise: { col1: [], col2: [], col3: [] }
+    };
 
     // --- 初期化 ---
     document.addEventListener('DOMContentLoaded', () => {
+        updateDatalists();
         renderCalendar();
         selectDate(selectedDateStr);
 
-        // イベントリスナー
+        // イベント設定
         document.getElementById('btn-prev').addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); });
         document.getElementById('btn-next').addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); });
         document.getElementById('btn-register').addEventListener('click', enterEditMode);
         document.getElementById('btn-cancel').addEventListener('click', exitEditMode);
         document.getElementById('log-form').addEventListener('submit', saveLog);
+
+        // タブ切り替えイベント
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                activeTime = e.target.dataset.time;
+                
+                if (document.getElementById('edit-mode').classList.contains('hidden')) {
+                    renderViewMode(); // 閲覧モードなら表示を切り替え
+                } else {
+                    // 編集モードなら、現在打ち込んでいるものを一時保存して、切り替え先の入力欄を作り直す
+                    refreshEditRows();
+                }
+            });
+        });
     });
 
-    // 日付フォーマットユーティリティ (YYYY-MM-DD)
     function getFormattedDate(date) {
         return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
     }
@@ -239,7 +292,6 @@
         const grid = document.getElementById('calendar-grid');
         grid.innerHTML = '';
 
-        // 曜日のヘッダー
         const weeks = ['日', '月', '火', '水', '木', '金', '土'];
         weeks.forEach(w => {
             const el = document.createElement('div');
@@ -248,16 +300,11 @@
             grid.appendChild(el);
         });
 
-        // 月の初日と総日数
         const firstDay = new Date(year, month, 1).getDay();
         const numDays = new Date(year, month + 1, 0).getDate();
 
-        // 空白埋め
-        for (let i = 0; i < firstDay; i++) {
-            grid.appendChild(document.createElement('div'));
-        }
+        for (let i = 0; i < firstDay; i++) grid.appendChild(document.createElement('div'));
 
-        // 日付マス作成
         for (let date = 1; date <= numDays; date++) {
             const dayEl = document.createElement('div');
             dayEl.className = 'day';
@@ -266,45 +313,51 @@
             const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
             dayEl.dataset.date = dateStr;
 
-            // データが存在するかチェック
-            if (logs[dateStr] && (logs[dateStr].skincare.length > 0 || logs[dateStr].meal.length > 0 || logs[dateStr].exercise.length > 0)) {
+            // いずれかの時間帯にデータがあれば点(●)を表示
+            if (logs[dateStr] && (
+                hasTimeData(logs[dateStr].morning) || 
+                hasTimeData(logs[dateStr].afternoon) || 
+                hasTimeData(logs[dateStr].night)
+            )) {
                 dayEl.classList.add('has-data');
             }
 
-            if (dateStr === selectedDateStr) {
-                dayEl.classList.add('selected');
-            }
+            if (dateStr === selectedDateStr) dayEl.classList.add('selected');
 
             dayEl.addEventListener('click', () => selectDate(dateStr));
             grid.appendChild(dayEl);
         }
     }
 
-    // --- 日付選択処理 ---
+    function hasTimeData(timeData) {
+        if (!timeData) return false;
+        return (timeData.skincare?.length > 0 || timeData.meal?.length > 0 || timeData.exercise?.length > 0);
+    }
+
     function selectDate(dateStr) {
         selectedDateStr = dateStr;
         document.querySelectorAll('.day').forEach(el => el.classList.remove('selected'));
         const activeDay = document.querySelector(`.day[data-date="${dateStr}"]`);
         if (activeDay) activeDay.classList.add('selected');
 
-        // タイ変更
         const d = new Date(dateStr);
         document.getElementById('selected-date-label').innerText = `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日の記録`;
 
-        exitEditMode(); // 日付を変えたら閲覧モードに戻す
+        exitEditMode();
         renderViewMode();
     }
 
     // --- 閲覧モードの描画 ---
     function renderViewMode() {
-        const dayData = logs[selectedDateStr] || { skincare: [], meal: [], exercise: [] };
-        
-        renderSectionView('view-skincare', dayData.skincare, ['化粧品名', '使用量', '備考']);
-        renderSectionView('view-meal', dayData.meal, ['メニュー', '量/時間', '備考']);
-        renderSectionView('view-exercise', dayData.exercise, ['種目', '時間/回数', '備考']);
+        const dayData = logs[selectedDateStr] || {};
+        const timeData = dayData[activeTime] || { skincare: [], meal: [], exercise: [] };
+
+        renderSectionView('view-skincare', timeData.skincare);
+        renderSectionView('view-meal', timeData.meal);
+        renderSectionView('view-exercise', timeData.exercise);
     }
 
-    function renderSectionView(elementId, dataArray, placeholders) {
+    function renderSectionView(elementId, dataArray) {
         const ul = document.getElementById(elementId);
         ul.innerHTML = '';
         if (!dataArray || dataArray.length === 0) {
@@ -313,25 +366,18 @@
         }
         dataArray.forEach(item => {
             const li = document.createElement('li');
-            // 値が入っているものだけ結合して綺麗に表示
             const parts = [item.col1, item.col2, item.col3].filter(p => p && p.trim() !== '');
             li.innerText = parts.join(' ｜ ');
             ul.appendChild(li);
         });
     }
 
-    // --- 編集モードへの移行 ---
+    // --- 編集モードへの移行 ＆ 入力欄リフレッシュ ---
     function enterEditMode() {
         document.getElementById('view-mode').classList.add('hidden');
         document.getElementById('edit-mode').classList.remove('hidden');
         document.getElementById('btn-register').classList.add('hidden');
-
-        const dayData = logs[selectedDateStr] || { skincare: [], meal: [], exercise: [] };
-
-        // 各セクションの入力欄をセットアップ
-        setupInputRows('input-skincare-rows', dayData.skincare);
-        setupInputRows('input-meal-rows', dayData.meal);
-        setupInputRows('input-exercise-rows', dayData.exercise);
+        refreshEditRows();
     }
 
     function exitEditMode() {
@@ -340,35 +386,39 @@
         document.getElementById('btn-register').classList.remove('hidden');
     }
 
-    // --- 自動で行が増える入力欄の生成ロジック ---
-    function setupInputRows(tbodyId, existingData) {
+    function refreshEditRows() {
+        if (!logs[selectedDateStr]) logs[selectedDateStr] = {};
+        const timeData = logs[selectedDateStr][activeTime] || { skincare: [], meal: [], exercise: [] };
+
+        setupInputRows('input-skincare-rows', timeData.skincare, 'skincare');
+        setupInputRows('input-meal-rows', timeData.meal, 'meal');
+        setupInputRows('input-exercise-rows', timeData.exercise, 'exercise');
+    }
+
+    function setupInputRows(tbodyId, existingData, sectionKey) {
         const tbody = document.getElementById(tbodyId);
         tbody.innerHTML = '';
 
-        // 既存データがある場合はそれを展開
         if (existingData && existingData.length > 0) {
-            existingData.forEach(data => addInputRow(tbody, data));
+            existingData.forEach(data => addInputRow(tbody, sectionKey, data));
         }
-        // 最低1行（または次の新規入力用空行）を追加
-        addInputRow(tbody);
+        addInputRow(tbody, sectionKey);
     }
 
-    function addInputRow(tbody, data = { col1: '', col2: '', col3: '' }) {
+    function addInputRow(tbody, sectionKey, data = { col1: '', col2: '', col3: '' }) {
         const tr = document.createElement('tr');
         tr.className = 'input-row';
         tr.innerHTML = `
-            <td><input type="text" class="col1" value="${data.col1}" placeholder="入力..."></td>
-            <td><input type="text" class="col2" value="${data.col2}" placeholder="入力..."></td>
-            <td><input type="text" class="col3" value="${data.col3}" placeholder="入力..."></td>
+            <td><input type="text" class="col1" value="${data.col1}" placeholder="入力..." list="suggest-${sectionKey}-col1"></td>
+            <td><input type="text" class="col2" value="${data.col2}" placeholder="入力..." list="suggest-${sectionKey}-col2"></td>
+            <td><input type="text" class="col3" value="${data.col3}" placeholder="入力..." list="suggest-${sectionKey}-col3"></td>
         `;
 
-        // どの入力欄でも、文字が打ち込まれたら次の行を自動生成するイベントを設定
         const inputs = tr.querySelectorAll('input');
         inputs.forEach(input => {
             input.addEventListener('input', () => {
-                // この行が現在所属するテーブルの「最終行」かつ「何かしら文字が入った」場合
                 if (tr === tbody.lastElementChild && (inputs[0].value || inputs[1].value || inputs[2].value)) {
-                    addInputRow(tbody); // 次の空行をドカンと追加
+                    addInputRow(tbody, sectionKey);
                 }
             });
         });
@@ -380,19 +430,25 @@
     function saveLog(e) {
         e.preventDefault();
 
-        // 各セクションからデータ回収（最後の空行などは除外するフィルター付き）
+        if (!logs[selectedDateStr]) logs[selectedDateStr] = {};
+        
+        // 現在のタブ（時間帯）のデータを集計して格納
         const skincare = collectRowData('input-skincare-rows');
         const meal = collectRowData('input-meal-rows');
         const exercise = collectRowData('input-exercise-rows');
 
-        // オブジェクトに格納して保存
-        logs[selectedDateStr] = { skincare, meal, exercise };
+        logs[selectedDateStr][activeTime] = { skincare, meal, exercise };
         localStorage.setItem('lifeLogs', JSON.stringify(logs));
 
-        // 表示の更新
+        // 予測候補の学習
+        learnWords('skincare', skincare);
+        learnWords('meal', meal);
+        learnWords('exercise', exercise);
+
+        updateDatalists();
         exitEditMode();
         renderViewMode();
-        renderCalendar(); // 点(●)をつけるために再描画
+        renderCalendar();
     }
 
     function collectRowData(tbodyId) {
@@ -402,13 +458,37 @@
             const col1 = row.querySelector('.col1').value.trim();
             const col2 = row.querySelector('.col2').value.trim();
             const col3 = row.querySelector('.col3').value.trim();
-            
-            // 3つのうちどれか1つでも入力があれば保存対象にする
             if (col1 || col2 || col3) {
                 data.push({ col1, col2, col3 });
             }
         });
         return data;
+    }
+
+    function learnWords(sectionKey, dataArray) {
+        dataArray.forEach(item => {
+            if (item.col1 && !words[sectionKey].col1.includes(item.col1)) words[sectionKey].col1.push(item.col1);
+            if (item.col2 && !words[sectionKey].col2.includes(item.col2)) words[sectionKey].col2.push(item.col2);
+            if (item.col3 && !words[sectionKey].col3.includes(item.col3)) words[sectionKey].col3.push(item.col3);
+        });
+        localStorage.setItem('lifeLogWords', JSON.stringify(words));
+    }
+
+    function updateDatalists() {
+        const sections = ['skincare', 'meal', 'exercise'];
+        sections.forEach(sec => {
+            for (let i = 1; i <= 3; i++) {
+                const datalist = document.getElementById(`suggest-${sec}-col${i}`);
+                if (!datalist) continue;
+                datalist.innerHTML = '';
+                const wordList = words[sec][`col${i}`] || [];
+                wordList.forEach(w => {
+                    const option = document.createElement('option');
+                    option.value = w;
+                    datalist.appendChild(option);
+                });
+            }
+        });
     }
 </script>
 
