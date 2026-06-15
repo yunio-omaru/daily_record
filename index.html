@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Life Log (朝・昼・晩対応版)</title>
+    <title>My Life Log (行並び替え機能付き)</title>
     <style>
         :root {
             --primary-color: #6b8e23;
@@ -20,7 +20,7 @@
             padding: 20px;
         }
         .container {
-            max-width: 800px;
+            max-width: 850px; /* テーブル幅確保のため少し広げました */
             margin: 0 auto;
         }
         header {
@@ -139,7 +139,8 @@
         /* 編集モード テーブル */
         table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
         th { text-align: left; font-size: 0.85rem; color: #666; padding: 4px; }
-        td { padding: 4px 2px; }
+        td { padding: 6px 2px; vertical-align: middle; }
+        
         input[type="text"] {
             width: 100%;
             padding: 6px;
@@ -149,8 +150,19 @@
             font-size: 0.9rem;
         }
         input[type="text"]:focus { border-color: var(--primary-color); outline: none; }
-        .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
         
+        /* 並び替えボタンのスタイル */
+        .move-btns { display: flex; gap: 2px; }
+        .btn-move {
+            background: #f0f0f0;
+            color: #555;
+            padding: 4px 6px;
+            font-size: 0.75rem;
+            border-radius: 3px;
+        }
+        .btn-move:hover { background: #e0e0e0; color: #000; }
+        
+        .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
         .hidden { display: none !important; }
     </style>
 </head>
@@ -196,7 +208,7 @@
                 <div class="section-title">スキンケア</div>
                 <table>
                     <thead>
-                        <tr><th style="width: 40%;">化粧品名</th><th style="width: 25%;">使用量</th><th style="width: 35%;">備考</th></tr>
+                        <tr><th style="width: 80px;">並び替え</th><th style="width: 38%;">化粧品名</th><th style="width: 24%;">使用量</th><th style="width: 32%;">備考</th></tr>
                     </thead>
                     <tbody id="input-skincare-rows"></tbody>
                 </table>
@@ -204,7 +216,7 @@
                 <div class="section-title">食事</div>
                 <table>
                     <thead>
-                        <tr><th style="width: 40%;">メニュー</th><th style="width: 25%;">時間/量</th><th style="width: 35%;">備考</th></tr>
+                        <tr><th style="width: 80px;">並び替え</th><th style="width: 38%;">メニュー</th><th style="width: 24%;">時間/量</th><th style="width: 32%;">備考</th></tr>
                     </thead>
                     <tbody id="input-meal-rows"></tbody>
                 </table>
@@ -212,7 +224,7 @@
                 <div class="section-title">運動</div>
                 <table>
                     <thead>
-                        <tr><th style="width: 40%;">種目</th><th style="width: 25%;">時間/回数</th><th style="width: 35%;">備考</th></tr>
+                        <tr><th style="width: 80px;">並び替え</th><th style="width: 38%;">種目</th><th style="width: 24%;">時間/回数</th><th style="width: 32%;">備考</th></tr>
                     </thead>
                     <tbody id="input-exercise-rows"></tbody>
                 </table>
@@ -240,7 +252,7 @@
     // --- 状態管理 ---
     let currentDate = new Date();
     let selectedDateStr = getFormattedDate(new Date());
-    let activeTime = 'morning'; // 現在選択中の時間帯 ('morning', 'afternoon', 'night')
+    let activeTime = 'morning'; 
     
     let logs = JSON.parse(localStorage.getItem('lifeLogs')) || {};
     let words = JSON.parse(localStorage.getItem('lifeLogWords')) || {
@@ -255,14 +267,12 @@
         renderCalendar();
         selectDate(selectedDateStr);
 
-        // イベント設定
         document.getElementById('btn-prev').addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); });
         document.getElementById('btn-next').addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); });
         document.getElementById('btn-register').addEventListener('click', enterEditMode);
         document.getElementById('btn-cancel').addEventListener('click', exitEditMode);
         document.getElementById('log-form').addEventListener('submit', saveLog);
 
-        // タブ切り替えイベント
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -270,9 +280,10 @@
                 activeTime = e.target.dataset.time;
                 
                 if (document.getElementById('edit-mode').classList.contains('hidden')) {
-                    renderViewMode(); // 閲覧モードなら表示を切り替え
+                    renderViewMode(); 
                 } else {
-                    // 編集モードなら、現在打ち込んでいるものを一時保存して、切り替え先の入力欄を作り直す
+                    // 編集モード中にタブを切り替える場合、現在の入力状態をlogsに一時避難させてから切り替える
+                    saveCurrentFormToMemory();
                     refreshEditRows();
                 }
             });
@@ -313,7 +324,6 @@
             const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
             dayEl.dataset.date = dateStr;
 
-            // いずれかの時間帯にデータがあれば点(●)を表示
             if (logs[dateStr] && (
                 hasTimeData(logs[dateStr].morning) || 
                 hasTimeData(logs[dateStr].afternoon) || 
@@ -402,18 +412,41 @@
         if (existingData && existingData.length > 0) {
             existingData.forEach(data => addInputRow(tbody, sectionKey, data));
         }
-        addInputRow(tbody, sectionKey);
+        addInputRow(tbody, sectionKey); // 常に末尾に空欄を1行用意
     }
 
+    // --- 行の生成（並び替えボタン付き） ---
     function addInputRow(tbody, sectionKey, data = { col1: '', col2: '', col3: '' }) {
         const tr = document.createElement('tr');
         tr.className = 'input-row';
         tr.innerHTML = `
+            <td>
+                <div class="move-btns">
+                    <button type="button" class="btn-move move-up">▲</button>
+                    <button type="button" class="btn-move move-down">▼</button>
+                </div>
+            </td>
             <td><input type="text" class="col1" value="${data.col1}" placeholder="入力..." list="suggest-${sectionKey}-col1"></td>
             <td><input type="text" class="col2" value="${data.col2}" placeholder="入力..." list="suggest-${sectionKey}-col2"></td>
             <td><input type="text" class="col3" value="${data.col3}" placeholder="入力..." list="suggest-${sectionKey}-col3"></td>
         `;
 
+        // 並び替えボタンのイベント登録
+        tr.querySelector('.move-up').addEventListener('click', () => {
+            const prev = tr.previousElementSibling;
+            if (prev) {
+                tbody.insertBefore(tr, prev); // 上の行の前に自分を挿入（＝上に上がる）
+            }
+        });
+
+        tr.querySelector('.move-down').addEventListener('click', () => {
+            const next = tr.nextElementSibling;
+            if (next) {
+                tbody.insertBefore(next, tr); // 自分の前に下の行を挿入（＝自分が下に下がる）
+            }
+        });
+
+        // 自動で行が増えるイベント
         const inputs = tr.querySelectorAll('input');
         inputs.forEach(input => {
             input.addEventListener('input', () => {
@@ -426,24 +459,28 @@
         tbody.appendChild(tr);
     }
 
+    // 画面上の現在の入力内容を一時的にメモリ(logs)に保存する関数（タブ切り替え用）
+    function saveCurrentFormToMemory() {
+        if (!logs[selectedDateStr]) logs[selectedDateStr] = {};
+        logs[selectedDateStr][activeTime] = {
+            skincare: collectRowData('input-skincare-rows'),
+            meal: collectRowData('input-meal-rows'),
+            exercise: collectRowData('input-exercise-rows')
+        };
+    }
+
     // --- データの保存 ---
     function saveLog(e) {
         e.preventDefault();
 
-        if (!logs[selectedDateStr]) logs[selectedDateStr] = {};
-        
-        // 現在のタブ（時間帯）のデータを集計して格納
-        const skincare = collectRowData('input-skincare-rows');
-        const meal = collectRowData('input-meal-rows');
-        const exercise = collectRowData('input-exercise-rows');
-
-        logs[selectedDateStr][activeTime] = { skincare, meal, exercise };
+        saveCurrentFormToMemory(); // 現在のフォーム内容を回収
         localStorage.setItem('lifeLogs', JSON.stringify(logs));
 
         // 予測候補の学習
-        learnWords('skincare', skincare);
-        learnWords('meal', meal);
-        learnWords('exercise', exercise);
+        const timeData = logs[selectedDateStr][activeTime];
+        learnWords('skincare', timeData.skincare);
+        learnWords('meal', timeData.meal);
+        learnWords('exercise', timeData.exercise);
 
         updateDatalists();
         exitEditMode();
