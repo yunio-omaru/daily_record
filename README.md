@@ -4,9 +4,7 @@
 データベース不要でブラウザのみで完結し、データはローカルストレージに安全に自動保存されます。
 
 ## 🔗 公開ページURL
-ここにあなたの公開URLを貼り付けてください！
-例： https://あなたのGitHubユーザー名.github.io/daily_record/
-
+https://yunio-omaru.github.io/daily_record/
 ---
 
 ## ✨ 主な機能とこだわりポイント
