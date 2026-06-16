@@ -54,14 +54,22 @@
             margin-bottom: 20px;
             font-size: 0.85rem;
             display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .config-row {
+            display: flex;
             align-items: center;
+            gap: 10px;
         }
-        .config-panel input {
-            padding: 6px; border: 1px solid #ccc; border-radius: 4px; flex: 1; min-width: 300px;
+        .config-row label {
+            width: 130px;
+            font-weight: bold;
         }
-        .status-bar { font-weight: bold; color: #27ae60; }
+        .config-row input {
+            padding: 6px; border: 1px solid #ccc; border-radius: 4px; flex: 1;
+        }
+        .status-bar { font-weight: bold; color: #27ae60; margin-top: 5px; }
 
         /* カレンダー */
         .calendar-container {
@@ -189,9 +197,18 @@
 
 <div class="container">
     <div class="config-panel">
-        📊 <strong>スプレッドシート（GAS）同期設定：</strong>
-        <input type="text" id="cfg-gas-url" value="https://script.google.com/macros/s/AKfycbwZvHEkGI3Z3ZLoovwF4p6t9rbCtG-aMj3UERJF61-jP2dYawyuuecU1Eb60z9u9Wuy/exec" placeholder="GASのウェブアプリURL">
-        <button id="btn-save-config" class="btn-main" style="padding: 5px 10px; font-size:0.8rem;">設定保存</button>
+        📊 <strong>スプレッドシート同期設定</strong>
+        <div class="config-row">
+            <label for="cfg-gas-url">GASウェブアプリURL:</label>
+            <input type="text" id="cfg-gas-url" value="https://script.google.com/macros/s/AKfycbwZvHEkGI3Z3ZLoovwF4p6t9rbCtG-aMj3UERJF61-jP2dYawyuuecU1Eb60z9u9Wuy/exec">
+        </div>
+        <div class="config-row">
+            <label for="cfg-ss-id">スプレッドシートID:</label>
+            <input type="text" id="cfg-ss-id" value="AKfycbwZvHEkGI3Z3ZLoovwF4p6t9rbCtG-aMj3UERJF61-jP2dYawyuuecU1Eb60z9u9Wuy" placeholder="スプレッドシートのID">
+        </div>
+        <div class="config-row" style="justify-content: flex-end;">
+            <button id="btn-save-config" class="btn-main" style="padding: 5px 12px; font-size:0.8rem;">設定を保存</button>
+        </div>
         <span id="sync-status" class="status-bar"></span>
     </div>
 
@@ -294,7 +311,6 @@
     document.addEventListener('DOMContentLoaded', () => {
         loadConfig();
         
-        // ローカルキャッシュの読み込み
         logs = JSON.parse(localStorage.getItem('lifeLogs')) || {};
         words = JSON.parse(localStorage.getItem('lifeLogWords')) || {
             skincare: { col1: [], col2: [], col3: [] },
@@ -306,7 +322,7 @@
         renderCalendar();
         selectDate(selectedDateStr);
 
-        // URLがあるため自動的にクラウド読み込みを開始
+        // 自動的にクラウド読み込みを開始
         if(getConfig().gasUrl) loadFromSpreadsheet();
 
         document.getElementById('btn-prev').addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); });
@@ -337,20 +353,22 @@
     // --- 設定の制御 ---
     function getConfig() {
         return {
-            gasUrl: document.getElementById('cfg-gas-url').value.trim()
+            gasUrl: document.getElementById('cfg-gas-url').value.trim(),
+            spreadsheetId: document.getElementById('cfg-ss-id').value.trim()
         };
     }
     function saveConfig() {
         const cfg = getConfig();
         localStorage.setItem('ll_cfg_gas_url', cfg.gasUrl);
-        alert('同期設定を保存しました。再読み込みを行います。');
+        localStorage.setItem('ll_cfg_ss_id', cfg.spreadsheetId);
+        alert('同期設定を保存しました。データを読み込みます。');
         loadFromSpreadsheet();
     }
     function loadConfig() {
         const savedUrl = localStorage.getItem('ll_cfg_gas_url');
-        if (savedUrl) {
-            document.getElementById('cfg-gas-url').value = savedUrl;
-        }
+        const savedId = localStorage.getItem('ll_cfg_ss_id');
+        if (savedUrl) document.getElementById('cfg-gas-url').value = savedUrl;
+        if (savedId) document.getElementById('cfg-ss-id').value = savedId;
     }
 
     // --- スプレッドシートデータ読込 ---
@@ -365,7 +383,10 @@
         try {
             const res = await fetch(cfg.gasUrl, {
                 method: "POST",
-                body: JSON.stringify({ action: "load" })
+                body: JSON.stringify({ 
+                    action: "load",
+                    spreadsheetId: cfg.spreadsheetId // IDを送信
+                })
             });
             if(res.ok) {
                 const result = await res.json();
@@ -410,6 +431,7 @@
                 method: "POST",
                 body: JSON.stringify({
                     action: "save",
+                    spreadsheetId: cfg.spreadsheetId, // IDを送信
                     data: dataPayload
                 })
             });
@@ -552,7 +574,6 @@
         addInputRow(tbody, sectionKey); 
     }
 
-    // 行追加・並び替え機能
     function addInputRow(tbody, sectionKey, data = { col1: '', col2: '', col3: '' }) {
         const tr = document.createElement('tr');
         tr.className = 'input-row';
