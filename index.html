@@ -347,7 +347,6 @@
         loadFromSpreadsheet();
     }
     function loadConfig() {
-        // ローカルストレージに別URLが保存されていればそれを優先、なければ初期設定のURLのまま
         const savedUrl = localStorage.getItem('ll_cfg_gas_url');
         if (savedUrl) {
             document.getElementById('cfg-gas-url').value = savedUrl;
@@ -553,6 +552,7 @@
         addInputRow(tbody, sectionKey); 
     }
 
+    // 行追加・並び替え機能
     function addInputRow(tbody, sectionKey, data = { col1: '', col2: '', col3: '' }) {
         const tr = document.createElement('tr');
         tr.className = 'input-row';
