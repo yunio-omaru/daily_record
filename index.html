@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Life Log (GitHub同期・行並び替え機能付き)</title>
+    <title>My Life Log (スプレッドシート同期・行並び替え機能付き)</title>
     <style>
         :root {
             --primary-color: #6b8e23;
@@ -59,9 +59,8 @@
             align-items: center;
         }
         .config-panel input {
-            padding: 6px; border: 1px solid #ccc; border-radius: 4px; width: 150px;
+            padding: 6px; border: 1px solid #ccc; border-radius: 4px; flex: 1; min-width: 300px;
         }
-        .config-panel input[type="password"] { width: 200px; }
         .status-bar { font-weight: bold; color: #27ae60; }
 
         /* カレンダー */
@@ -190,10 +189,8 @@
 
 <div class="container">
     <div class="config-panel">
-        🔑 <strong>GitHub同期設定：</strong>
-        <input type="text" id="cfg-user" placeholder="GitHubユーザー名">
-        <input type="text" id="cfg-repo" placeholder="リポジトリ名">
-        <input type="password" id="cfg-token" placeholder="アクセストークン(ghp_...)">
+        📊 <strong>スプレッドシート（GAS）同期設定：</strong>
+        <input type="text" id="cfg-gas-url" value="https://script.google.com/macros/s/AKfycbwZvHEkGI3Z3ZLoovwF4p6t9rbCtG-aMj3UERJF61-jP2dYawyuuecU1Eb60z9u9Wuy/exec" placeholder="GASのウェブアプリURL">
         <button id="btn-save-config" class="btn-main" style="padding: 5px 10px; font-size:0.8rem;">設定保存</button>
         <span id="sync-status" class="status-bar"></span>
     </div>
@@ -285,7 +282,6 @@
     let currentDate = new Date();
     let selectedDateStr = getFormattedDate(new Date());
     let activeTime = 'morning'; 
-    let fileSha = ""; // GitHubファイル追跡用ハッシュ値
     
     let logs = {};
     let words = {
@@ -298,7 +294,7 @@
     document.addEventListener('DOMContentLoaded', () => {
         loadConfig();
         
-        // 最初のフォールバックとしてローカルから読み込み
+        // ローカルキャッシュの読み込み
         logs = JSON.parse(localStorage.getItem('lifeLogs')) || {};
         words = JSON.parse(localStorage.getItem('lifeLogWords')) || {
             skincare: { col1: [], col2: [], col3: [] },
@@ -310,8 +306,8 @@
         renderCalendar();
         selectDate(selectedDateStr);
 
-        // トークン情報があれば自動でGitHubから最新データを取得
-        if(getConfig().token) loadFromGitHub();
+        // URLがあるため自動的にクラウド読み込みを開始
+        if(getConfig().gasUrl) loadFromSpreadsheet();
 
         document.getElementById('btn-prev').addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); });
         document.getElementById('btn-next').addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); });
@@ -320,7 +316,7 @@
         document.getElementById('log-form').addEventListener('submit', saveLog);
 
         document.getElementById('btn-save-config').addEventListener('click', saveConfig);
-        document.getElementById('btn-cloud-load').addEventListener('click', loadFromGitHub);
+        document.getElementById('btn-cloud-load').addEventListener('click', loadFromSpreadsheet);
 
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -338,101 +334,98 @@
         });
     });
 
-    // --- GitHub設定の制御 ---
+    // --- 設定の制御 ---
     function getConfig() {
         return {
-            user: document.getElementById('cfg-user').value.trim(),
-            repo: document.getElementById('cfg-repo').value.trim(),
-            token: document.getElementById('cfg-token').value.trim()
+            gasUrl: document.getElementById('cfg-gas-url').value.trim()
         };
     }
     function saveConfig() {
         const cfg = getConfig();
-        localStorage.setItem('ll_cfg_user', cfg.user);
-        localStorage.setItem('ll_cfg_repo', cfg.repo);
-        localStorage.setItem('ll_cfg_token', cfg.token);
-        alert('Life Log の同期設定を保存しました。クラウド読込を開始します。');
-        loadFromGitHub();
+        localStorage.setItem('ll_cfg_gas_url', cfg.gasUrl);
+        alert('同期設定を保存しました。再読み込みを行います。');
+        loadFromSpreadsheet();
     }
     function loadConfig() {
-        document.getElementById('cfg-user').value = localStorage.getItem('ll_cfg_user') || '';
-        document.getElementById('cfg-repo').value = localStorage.getItem('ll_cfg_repo') || '';
-        document.getElementById('cfg-token').value = localStorage.getItem('ll_cfg_token') || '';
+        // ローカルストレージに別URLが保存されていればそれを優先、なければ初期設定のURLのまま
+        const savedUrl = localStorage.getItem('ll_cfg_gas_url');
+        if (savedUrl) {
+            document.getElementById('cfg-gas-url').value = savedUrl;
+        }
     }
 
-    // --- GitHubデータ読込 (lifelog_data.json) ---
-    async function loadFromGitHub() {
+    // --- スプレッドシートデータ読込 ---
+    async function loadFromSpreadsheet() {
         const cfg = getConfig();
-        if(!cfg.user || !cfg.repo || !cfg.token) {
-            document.getElementById('sync-status').innerText = "⚠️ 同期設定未完了（ローカル稼働）";
+        if(!cfg.gasUrl) {
+            document.getElementById('sync-status').innerText = "⚠️ 同期設定未完了";
             return;
         }
         document.getElementById('sync-status').innerText = "🔄 クラウド読込中...";
-        const url = `https://api.github.com/repos/${cfg.user}/${cfg.repo}/contents/lifelog_data.json`;
         
         try {
-            const res = await fetch(url, {
-                headers: { "Authorization": `token ${cfg.token}`, "Accept": "application/vnd.github.v3+json" }
+            const res = await fetch(cfg.gasUrl, {
+                method: "POST",
+                body: JSON.stringify({ action: "load" })
             });
-            if(res.status === 200) {
-                const json = await res.json();
-                fileSha = json.sha;
-                const rData = JSON.parse(decodeURIComponent(escape(atob(json.content))));
-                
-                logs = rData.logs || {};
-                words = rData.words || {
-                    skincare: { col1: [], col2: [], col3: [] },
-                    meal: { col1: [], col2: [], col3: [] },
-                    exercise: { col1: [], col2: [], col3: [] }
-                };
-                
-                localStorage.setItem('lifeLogs', JSON.stringify(logs));
-                localStorage.setItem('lifeLogWords', JSON.stringify(words));
-                
-                updateDatalists();
-                renderCalendar();
-                renderViewMode();
-                document.getElementById('sync-status').innerText = "✅ クラウド同期成功";
-            } else if(res.status === 404) {
-                document.getElementById('sync-status').innerText = "🆕 クラウド上に新規データを作成します";
+            if(res.ok) {
+                const result = await res.json();
+                if (result.status === 'success') {
+                    const rData = result.data || {};
+                    logs = rData.logs || {};
+                    words = rData.words || {
+                        skincare: { col1: [], col2: [], col3: [] },
+                        meal: { col1: [], col2: [], col3: [] },
+                        exercise: { col1: [], col2: [], col3: [] }
+                    };
+                    
+                    localStorage.setItem('lifeLogs', JSON.stringify(logs));
+                    localStorage.setItem('lifeLogWords', JSON.stringify(words));
+                    
+                    updateDatalists();
+                    renderCalendar();
+                    renderViewMode();
+                    document.getElementById('sync-status').innerText = "✅ クラウド同期成功";
+                } else {
+                    document.getElementById('sync-status').innerText = "❌ 読込エラー: " + result.message;
+                }
             } else {
                 document.getElementById('sync-status').innerText = "❌ 接続エラー";
             }
         } catch(e) {
+            console.error(e);
             document.getElementById('sync-status').innerText = "❌ 通信失敗";
         }
     }
 
-    // --- GitHubデータ書込 (lifelog_data.json) ---
-    async function saveToGitHub() {
+    // --- スプレッドシートデータ書込 ---
+    async function saveToSpreadsheet() {
         const cfg = getConfig();
-        if(!cfg.user || !cfg.repo || !cfg.token) return;
+        if(!cfg.gasUrl) return;
 
         document.getElementById('sync-status').innerText = "💾 クラウドに保存中...";
-        const url = `https://api.github.com/repos/${cfg.user}/${cfg.repo}/contents/lifelog_data.json`;
         const dataPayload = { logs: logs, words: words };
-        const contentBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(dataPayload))));
-
-        const bodyData = {
-            message: "Update lifelog data",
-            content: contentBase64
-        };
-        if(fileSha) bodyData.sha = fileSha;
 
         try {
-            const res = await fetch(url, {
-                method: "PUT",
-                headers: { "Authorization": `token ${cfg.token}`, "Content-Type": "application/json" },
-                body: JSON.stringify(bodyData)
+            const res = await fetch(cfg.gasUrl, {
+                method: "POST",
+                body: JSON.stringify({
+                    action: "save",
+                    data: dataPayload
+                })
             });
             if(res.ok) {
-                const json = await res.json();
-                fileSha = json.content.sha; // バージョンIDを最新に更新
-                document.getElementById('sync-status').innerText = "✅ クラウド保存完了！";
+                const result = await res.json();
+                if (result.status === 'success') {
+                    document.getElementById('sync-status').innerText = "✅ クラウド保存完了！";
+                } else {
+                    document.getElementById('sync-status').innerText = "❌ 保存エラー: " + result.message;
+                }
             } else {
-                document.getElementById('sync-status').innerText = "❌ 保存エラー（再読込してください）";
+                document.getElementById('sync-status').innerText = "❌ 保存失敗";
             }
         } catch(e) {
+            console.error(e);
             document.getElementById('sync-status').innerText = "❌ 保存通信失敗";
         }
     }
@@ -504,7 +497,6 @@
         renderViewMode();
     }
 
-    // --- 閲覧モードの描画 ---
     function renderViewMode() {
         const dayData = logs[selectedDateStr] || {};
         const timeData = dayData[activeTime] || { skincare: [], meal: [], exercise: [] };
@@ -529,7 +521,6 @@
         });
     }
 
-    // --- 編集モードへの移行 ---
     function enterEditMode() {
         document.getElementById('view-mode').classList.add('hidden');
         document.getElementById('edit-mode').classList.remove('hidden');
@@ -537,7 +528,6 @@
         refreshEditRows();
     }
 
-    // --- 閲覧モードへの移行 ---
     function exitEditMode() {
         document.getElementById('view-mode').classList.remove('hidden');
         document.getElementById('edit-mode').classList.add('hidden');
@@ -563,7 +553,6 @@
         addInputRow(tbody, sectionKey); 
     }
 
-    // --- 行の生成 ---
     function addInputRow(tbody, sectionKey, data = { col1: '', col2: '', col3: '' }) {
         const tr = document.createElement('tr');
         tr.className = 'input-row';
@@ -610,14 +599,12 @@
         };
     }
 
-    // --- データの保存ボタン処理 ---
     function saveLog(e) {
         e.preventDefault();
 
         saveCurrentFormToMemory(); 
         localStorage.setItem('lifeLogs', JSON.stringify(logs));
 
-        // 予測候補の学習
         const timeData = logs[selectedDateStr][activeTime];
         learnWords('skincare', timeData.skincare);
         learnWords('meal', timeData.meal);
@@ -628,8 +615,7 @@
         renderViewMode();
         renderCalendar();
         
-        // クラウド（GitHub）に自動保存を走らせる
-        saveToGitHub();
+        saveToSpreadsheet();
     }
 
     function collectRowData(tbodyId) {
