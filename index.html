@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Life Log (データ救出・スプシ同期版)</title>
+    <title>My Life Log (過去データ完全復元版)</title>
     <style>
         :root {
             --primary-color: #6b8e23;
@@ -69,6 +69,26 @@
             text-align: center;
         }
 
+        /* 朝・昼 = 晩切り替えタブのスタイル */
+        .tab-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background-color: #e0e0e0;
+            color: #555;
+            font-size: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .tab-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
         /* セクション・テーブル用スタイル */
         .section-card {
             background-color: var(--card-bg);
@@ -101,7 +121,7 @@
             font-size: 0.9rem;
         }
         
-        input[type="text"], input[type="time"] {
+        input[type="text"] {
             width: 100%;
             box-sizing: border-box;
             padding: 8px;
@@ -109,7 +129,7 @@
             border-radius: 4px;
             font-size: 0.95rem;
         }
-        input[type="text"]:focus, input[type="time"]:focus {
+        input[type="text"]:focus {
             border-color: var(--primary-color);
             outline: none;
         }
@@ -172,14 +192,20 @@
         <input type="date" id="current-date">
     </div>
 
+    <div class="tab-container">
+        <button class="tab-btn active" data-time="morning">☀️ 朝</button>
+        <button class="tab-btn" data-time="noon">🌤️ 昼</button>
+        <button class="tab-btn" data-time="night">🌙 晩</button>
+    </div>
+
     <div class="section-card" id="sec-skincare">
         <div class="section-title">🧴 スキンケア・美容</div>
         <table>
             <thead>
                 <tr>
-                    <th style="width: 15%;">時間</th>
                     <th style="width: 35%;">内容 / アイテム</th>
-                    <th style="width: 35%;">目的 / メモ</th>
+                    <th style="width: 20%;">分量 / 回数</th>
+                    <th style="width: 30%;">目的 / メモ / 使い方</th>
                     <th style="width: 15%;">並び替え / 削除</th>
                 </tr>
             </thead>
@@ -195,9 +221,9 @@
         <table>
             <thead>
                 <tr>
-                    <th style="width: 15%;">時間</th>
                     <th style="width: 35%;">食べたもの / メニュー</th>
-                    <th style="width: 35%;">量 / メモ</th>
+                    <th style="width: 20%;">量</th>
+                    <th style="width: 30%;">メモ</th>
                     <th style="width: 15%;">並び替え / 削除</th>
                 </tr>
             </thead>
@@ -213,9 +239,9 @@
         <table>
             <thead>
                 <tr>
-                    <th style="width: 15%;">時間</th>
                     <th style="width: 35%;">種目 / 行動</th>
-                    <th style="width: 35%;">強度 / メモ</th>
+                    <th style="width: 20%;">強度 / 時間</th>
+                    <th style="width: 30%;">メモ</th>
                     <th style="width: 15%;">並び替え / 削除</th>
                 </tr>
             </thead>
@@ -227,41 +253,61 @@
     </div>
 </div>
 
+<datalist id="suggest-skincare-col1"></datalist>
 <datalist id="suggest-skincare-col2"></datalist>
 <datalist id="suggest-skincare-col3"></datalist>
+<datalist id="suggest-meal-col1"></datalist>
 <datalist id="suggest-meal-col2"></datalist>
 <datalist id="suggest-meal-col3"></datalist>
+<datalist id="suggest-exercise-col1"></datalist>
 <datalist id="suggest-exercise-col2"></datalist>
 <datalist id="suggest-exercise-col3"></datalist>
 
 <script>
-    // ウェブアプリURL
+    // デプロイしていただいた新しいGASのURL
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwZvHEkGI3Z3ZLoovwF4p6t9rbCtG-aMj3UERJF61-jP2dYawyuuecU1Eb60z9u9Wuy/exec";
 
-    // データの状態管理オブジェクト
+    // スプシ同期用オブジェクト
     let categories = [];
     let schedules = {}; 
     let doneRows = [];
+    let activeTimezone = 'morning'; // デフォルトは「朝」
 
-    // サジェストワード候補
+    // 🌟 ご提示いただいた過去のサジェスト履歴を完全初期値として移植
     let words = {
-        skincare: { col2: [], col3: [] },
-        meal: { col2: [], col3: [] },
-        exercise: { col2: [], col3: [] }
+        skincare: {
+            col1: ["A･TRUE：オリジン ピュア バランシング クレンジングオイル","松山油脂：アミノ酸浸透水","スキンフード：キャロットトナーパッド","Cosrx：RXザ・6ペプチドスキンブースターセラム","イズエンツリー：ヒアルロン酸トナー","Cosrx：RXザ・アルファアルブチン２","成分エディター：グリーントマトNMNポアリフティングアンプル","DRX：AZAクリア","ラ ロッシュ ポゼ：シカプラスト リペアクリーム B5+","皮膚科：ステロイドクリーム","マミー：ＵＶアクアミルク","牛乳石鹸：青箱","ビオレ：ビオレザフェイス(黄)"],
+            col2: ["ポンプ：2プッシュ","ポンプ：4プッシュ","1枚","10円玉大","スポイト：1~1.5","スポイト：1","米粒2粒x2","米粒3粒","100円玉大(立方)","1プッシュ"],
+            col3: ["手に軽く広げたら頬から全顔優しくなじませる","手に軽く広げたら頬から全顔優しくなじませる＞少し待って乳化","両頬、おでこ、鼻 軽く手で押し塗り","優しく全顔ふき取り＞2枚に割いて両頬2～5分パック","両手を軽くすり合わせ、頬から全顔に押し塗り","手を皿にして指につけて、それぞれの頬、残りを全顔に押し塗り","両頬、おでこに少量ずつ点置き後、全顔になじむよう押し塗り(目の上など乾燥しやすいところは避ける)","赤みやかさかさ、ニキビ以外のぽつぽつ部分に点置き押し塗り","全身洗った後、優しく洗顔","頬、鼻中心に全顔に優しく押し広げる＞30s～1min待ってすすぎ","全身洗った後、最後に優しく洗顔"]
+        },
+        meal: { col1: [], col2: [], col3: [] },
+        exercise: {
+            col1: ["ランニング"], col2: [], col3: ["家から大橋駅"]
+        }
+    };
+
+    // 🌟 ご提示いただいた「2026-06-14」「2026-06-15」等の過去ログを新しいスプシ構造に完全変換して初期内蔵
+    const PAST_JSON_LOGS = {
+        "2026-06-15_morning_skincare": [{"col1":"A･TRUE：オリジン ピュア バランシング クレンジングオイル","col2":"ポンプ：2プッシュ","col3":"手に軽く広げたら頬から全顔優しくなじませる＞少し待って乳化"},{"col1":"松山油脂：アミノ酸浸透水","col2":"ポンプ：4プッシュ","col3":"両頬、おでこ、鼻 軽く手で押し塗り"},{"col1":"スキンフード：キャロットトナーパッド","col2":"1枚","col3":"優しく全顔ふき取り＞2枚に割いて両頬2～5分パック"},{"col1":"Cosrx：RXザ・6ペプチドスキンブースターセラム","col2":"10円玉大","col3":"両手を軽くすり合わせ、頬から全顔に押し塗り"},{"col1":"イズエンツリー：ヒアルロン酸トナー","col2":"10円玉大","col3":"両手を軽くすり合わせ、頬から全顔に押し塗り"},{"col1":"Cosrx：RXザ・アルファアルブチン２","col2":"スポイト：1~1.5","col3":"手を皿にして指につけて、それぞれの頬、残りを全顔に押し塗り"},{"col1":"成分エディター：グリーントマトNMNポアリフティングアンプル","col2":"スポイト：1","col3":"手を皿にして指につけて、それぞれの頬、残りを全顔に押し塗り"},{"col1":"DRX：AZAクリア","col2":"米粒2粒x2","col3":"両頬、おでこに少量ずつ点置き後、全顔になじむよう押し塗り(目の上など乾燥しやすいところは避ける)"},{"col1":"ラ ロッシュ ポゼ：シカプラスト リペアクリーム B5+ \n","col2":"米粒2粒x2","col3":"両頬、おでこに少量ずつ点置き後、全顔になじむよう押し塗り(目の上など乾燥しやすいところは避ける)"},{"col1":"皮膚科：ステロイドクリーム","col2":"米粒3粒","col3":"赤みやかさかさ、ニキビ以外のぽつぽつ部分に点置き押し塗り"},{"col1":"マミー：ＵＶアクアミルク","col2":"100円玉大(立方)","col3":""}],
+        "2026-06-14_night_skincare": [{"col1":"牛乳石鹸：青箱","col2":"","col3":"全身洗った後、最後に優しく洗顔"},{"col1":"ビオレ：ビオレザフェイス(黄)","col2":"1プッシュ","col3":"頬、鼻中心に全顔に優しく押し広げる＞30s～1min待ってすすぎ"},{"col1":"松山油脂：アミノ酸浸透水","col2":"","col3":""},{"col1":"スキンフード：キャロットトナーパッド","col2":"","col3":""},{"col1":"Cosrx：RXザ・6ペプチドスキンブースターセラム","col2":"","col3":""},{"col1":"Cosrx：RXザ・アルファアルブチン２","col2":"","col3":""},{"col1":"成分エディター：グリーントマトNMNポアリフティングアンプル","col2":"","col3":""},{"col1":"DRX：AZAクリア","col2":"","col3":""},{"col1":"ラ ロッシュ ポゼ：シカプラスト リペアクリーム B5+","col2":"","col3":""},{"col1":"皮膚科：ステロイドクリーム","col2":"","col3":""}],
+        "2026-06-14_night_exercise": [{"col1":"ランニング","col2":"","col3":"家から大橋駅"}]
     };
 
     // 初期化処理
     document.addEventListener('DOMContentLoaded', () => {
         const dateInput = document.getElementById('current-date');
-        const today = new Date().toISOString().split('T')[0];
-        dateInput.value = today;
+        // デフォルト表示をデータのある「2026-06-15」に設定
+        dateInput.value = "2026-06-15";
 
-        // 【最優先】古い過去データがあるか探して、新しい形に変換・復元する（データ引っ越し機能）
-        migrateOldData();
+        // まず内蔵の過去ログを読み込む
+        schedules = Object.assign({}, PAST_JSON_LOGS);
 
-        // 復元またはキャッシュの読み込み
+        // キャッシュ（前回のローカル保存）があればマージ
         const localSch = localStorage.getItem('ss_schedules2');
-        if (localSch) schedules = JSON.parse(localSch);
+        if (localSch) {
+            const parsed = JSON.parse(localSch);
+            schedules = Object.assign(schedules, parsed);
+        }
 
         const localWords = localStorage.getItem('lifeLogWords');
         if (localWords) words = JSON.parse(localWords);
@@ -269,6 +315,16 @@
         // イベント設定
         dateInput.addEventListener('change', renderAllSections);
         document.getElementById('btn-cloud-load').addEventListener('click', loadFromSpreadsheet);
+
+        // 朝・昼・晩タブの切り替えイベント
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                activeTimezone = e.target.getAttribute('data-time');
+                renderAllSections();
+            });
+        });
 
         // 各セクションの「行を追加」ボタン設定
         document.querySelectorAll('.section-card').forEach(card => {
@@ -279,54 +335,10 @@
             });
         });
 
-        // スプレッドシートから最新データを読込
+        // 描画を実行し、スプレッドシートへの初回強制引っ越しバックアップ
+        renderAllSections();
         loadFromSpreadsheet();
     });
-
-    /**
-     * 💡 過去の古いデータを新しい同期の形に自動コンバートする関数
-     */
-    function migrateOldData() {
-        const oldDataStr = localStorage.getItem('lifeLogData');
-        if (!oldDataStr) return; // 古いデータがなければ何もしない
-
-        try {
-            const oldData = JSON.parse(oldDataStr); // 過去データを解析
-            let currentSchedules = {};
-            
-            // 既に新しいキャッシュがあれば読み込んでおく
-            const localSch = localStorage.getItem('ss_schedules2');
-            if (localSch) currentSchedules = JSON.parse(localSch);
-
-            let migratedCount = 0;
-
-            // 古いデータ形式: { "2026-06-17": { skincare: [...], meal: [...] } }
-            // 新しいデータ形式: { "2026-06-17_skincare": [...] } への変換
-            for (const dateStr in oldData) {
-                const dayData = oldData[dateStr];
-                for (const secKey in dayData) {
-                    const newKey = `${dateStr}_${secKey}`;
-                    // まだ新しいデータ側に存在しない日付データのみ移行する（上書き防止）
-                    if (!currentSchedules[newKey] && dayData[secKey] && dayData[secKey].length > 0) {
-                        currentSchedules[newKey] = dayData[secKey];
-                        migratedCount++;
-                    }
-                }
-            }
-
-            if (migratedCount > 0) {
-                // 新しい形式で保存し直す
-                schedules = currentSchedules;
-                localStorage.setItem('ss_schedules2', JSON.stringify(schedules));
-                // スプシ側にもすぐにバックアップ送信
-                setTimeout(() => {
-                    saveToSpreadsheet();
-                }, 1000);
-            }
-        } catch (e) {
-            console.error("過去データの移行中にエラーが発生しました:", e);
-        }
-    }
 
     // スプレッドシートからの読み込み同期処理(GET)
     async function loadFromSpreadsheet() {
@@ -336,21 +348,19 @@
             if(res.ok) {
                 const data = await res.json();
                 
-                // スプシ側が空欄でなくデータがある場合のみマージ・更新
+                // スプシ側にデータがあれば合体（ローカル＆内蔵優先で新しいものは追記）
                 if (data.schedules && Object.keys(data.schedules).length > 0) {
-                    schedules = data.schedules;
+                    schedules = Object.assign({}, schedules, data.schedules);
                 }
                 categories = data.categories || [];
-                if (data.doneRows) doneRows = data.doneRows;
                 
-                localStorage.setItem('ss_categories2', JSON.stringify(categories));
                 localStorage.setItem('ss_schedules2', JSON.stringify(schedules));
                 
                 renderAllSections();
-                document.getElementById('sync-status').innerText = "✅ スプレッドシート連携稼働中 (データ復元完了)";
+                document.getElementById('sync-status').innerText = "✅ スプレッドシート連携稼働中 (朝昼晩・過去ログ完全復元)";
             }
         } catch(e) {
-            document.getElementById('sync-status').innerText = "❌ 読み込み同期エラー";
+            document.getElementById('sync-status').innerText = "❌ 読み込み同期エラー (内蔵データで動作中)";
             renderAllSections();
         }
     }
@@ -379,10 +389,12 @@
             const tbody = document.querySelector(`#sec-${sec} .log-tbody`);
             tbody.innerHTML = '';
 
-            const dataKey = `${dateStr}_${sec}`;
+            // スプシ側キー構造: "日付_時間帯_セクション名" (例: 2026-06-15_morning_skincare)
+            const dataKey = `${dateStr}_${activeTimezone}_${sec}`;
             const rowsData = schedules[dataKey] || [];
 
             if (rowsData.length === 0) {
+                // データが空なら入力用に1行空欄を作る
                 addRow(sec, '', '', '');
             } else {
                 rowsData.forEach(item => {
@@ -398,7 +410,7 @@
         const tr = document.createElement('tr');
 
         tr.innerHTML = `
-            <td><input type="time" class="input-cell col1" value="${c1}"></td>
+            <td><input type="text" class="input-cell col1" value="${c1}" list="suggest-${sectionKey}-col1"></td>
             <td><input type="text" class="input-cell col2" value="${c2}" list="suggest-${sectionKey}-col2"></td>
             <td><input type="text" class="input-cell col3" value="${c3}" list="suggest-${sectionKey}-col3"></td>
             <td>
@@ -408,12 +420,14 @@
             </td>
         `;
 
+        // 入力変更で即座に保存
         tr.querySelectorAll('.input-cell').forEach(input => {
             input.addEventListener('change', () => {
                 saveCurrentData();
             });
         });
 
+        // 並び替え・削除ボタン
         tr.querySelector('.btn-up').addEventListener('click', () => {
             if (tr.previousElementSibling) {
                 tbody.insertBefore(tr, tr.previousElementSibling);
@@ -442,7 +456,7 @@
         const sections = ['skincare', 'meal', 'exercise'];
 
         sections.forEach(sec => {
-            const dataKey = `${dateStr}_${sec}`;
+            const dataKey = `${dateStr}_${activeTimezone}_${sec}`;
             const grabbed = grabTableData(sec);
             
             if (grabbed.length === 0) {
@@ -476,6 +490,7 @@
     // サジェストワードの学習
     function learnWords(sectionKey, dataArray) {
         dataArray.forEach(item => {
+            if (item.col1 && !words[sectionKey].col1.includes(item.col1)) words[sectionKey].col1.push(item.col1);
             if (item.col2 && !words[sectionKey].col2.includes(item.col2)) words[sectionKey].col2.push(item.col2);
             if (item.col3 && !words[sectionKey].col3.includes(item.col3)) words[sectionKey].col3.push(item.col3);
         });
@@ -486,7 +501,7 @@
     function updateDatalists() {
         const sections = ['skincare', 'meal', 'exercise'];
         sections.forEach(sec => {
-            for (let i = 2; i <= 3; i++) {
+            for (let i = 1; i <= 3; i++) {
                 const datalist = document.getElementById(`suggest-${sec}-col${i}`);
                 if (!datalist) continue;
                 datalist.innerHTML = '';
