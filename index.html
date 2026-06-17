@@ -105,7 +105,7 @@
         <header>
             <button id="btn-edit-back" class="btn-secondary">◀ 戻る</button>
             <h1 id="header-edit-date">ログ編集</h1>
-            <button id="btn-edit-save" class="btn-sync">💾 保存</button>
+            <button id="btn-edit-save" class="btn-sync" onclick="executeSave()">💾 保存</button>
         </header>
         <div style="margin: 10px 0; font-weight: bold; text-align: center;" id="edit-date-label">対象日: </div>
         <div class="tab-container">
@@ -143,7 +143,6 @@
 <div id="datalist-container"></div>
 
 <script>
-    // ⚠️ ご自身のGASウェブアプリURLをここに貼り付けてください
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwZvHEkGI3Z3ZLoovwF4p6t9rbCtG-aMj3UERJF61-jP2dYawyuuecU1Eb60z9u9Wuy/exec";
 
     let goriLogData = {}; 
@@ -170,7 +169,6 @@
         document.getElementById('btn-detail-back').addEventListener('click', () => showPage('page-calendar'));
         document.getElementById('btn-edit-back').addEventListener('click', () => showPage('page-detail'));
         document.getElementById('btn-go-edit').addEventListener('click', openEditPage);
-        document.getElementById('btn-edit-save').addEventListener('click', saveEditData);
 
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -294,9 +292,21 @@
         tbody.appendChild(tr);
     }
 
-    function saveEditData() {
+    // ⚙️【完全解決の修正】onclickから中継して呼び出す非同期関数
+    async function executeSave() {
+        try {
+            await saveEditData();
+        } catch (e) {
+            console.error(e);
+            document.getElementById('sync-status').innerText = "❌ 処理エラーが発生しました";
+        }
+    }
+
+    async function saveEditData() {
         const secs = ['skincare', 'meal', 'exercise'];
-        secs.forEach(sec => {
+        
+        // ⚙️【完全解決の修正】forEachを完全に廃止し、非同期が100%待機できる for...of 構文に全修正
+        for (const sec of secs) {
             const rows = document.querySelectorAll(`#sec-${sec} .log-tbody tr`);
             const data = [];
             rows.forEach(row => {
@@ -306,21 +316,24 @@
                 if (col1 || col2 || col3) data.push({ col1, col2, col3 });
             });
             const dataKey = `${selectedDateStr}_${activeTimezone}_${sec}`;
-            if (data.length === 0) { delete goriLogData[dataKey]; } 
-            else {
+            if (data.length === 0) { 
+                delete goriLogData[dataKey]; 
+            } else {
                 goriLogData[dataKey] = data;
                 data.forEach(item => {
-                    // ⚙️ 【修正箇所】ここをwordsからgoriWordsに修正し、エラーを解消しました
+                    if (!goriWords[sec]) goriWords[sec] = { col1: [], col2: [], col3: [] };
                     if (item.col1 && !goriWords[sec].col1.includes(item.col1)) goriWords[sec].col1.push(item.col1);
                     if (item.col2 && !goriWords[sec].col2.includes(item.col2)) goriWords[sec].col2.push(item.col2);
                     if (item.col3 && !goriWords[sec].col3.includes(item.col3)) goriWords[sec].col3.push(item.col3);
                 });
             }
-        });
+        }
 
         localStorage.setItem('goriLogData', JSON.stringify(goriLogData));
         localStorage.setItem('goriWords', JSON.stringify(goriWords));
-        buildDatalists(); openDetailPage(selectedDateStr); saveToSpreadsheet();
+        
+        buildDatalists(); 
+        await saveToSpreadsheet(); 
     }
 
     async function loadFromSpreadsheet() {
@@ -346,24 +359,40 @@
         document.getElementById('sync-status').innerText = "💾 クラウドに保存中...";
         try {
             const payload = { goriLogData: goriLogData, goriWords: goriWords };
-            await fetch(GAS_API_URL, { method: "POST", body: JSON.stringify(payload) });
-            document.getElementById('sync-status').innerText = "✅ スプレッドシートに保存しました！";
+            const res = await fetch(GAS_API_URL, { method: "POST", body: JSON.stringify(payload) });
+            if (res.ok) {
+                document.getElementById('sync-status').innerText = "✅ スプレッドシートに保存しました！";
+                openDetailPage(selectedDateStr);
+            } else {
+                document.getElementById('sync-status').innerText = "❌ クラウド保存エラー(ステータス不正)";
+            }
         } catch(e) {
             document.getElementById('sync-status').innerText = "❌ クラウド保存エラー";
         }
     }
 
     function buildDatalists() {
-        const container = document.getElementById('datalist-container'); container.innerHTML = '';
-        const secs = ['skincare', 'meal', 'exercise'];
-        secs.forEach(sec => {
-            for (let i = 1; i <= 3; i++) {
-                const dl = document.createElement('datalist'); dl.id = `suggest-${sec}-col${i}`;
-                const wordList = goriWords[sec][`col${i}`] || [];
-                wordList.forEach(w => { const opt = document.createElement('option'); opt.value = w; dl.appendChild(opt); });
-                container.appendChild(dl);
-            }
-        });
+        try {
+            const container = document.getElementById('datalist-container'); 
+            container.innerHTML = '';
+            const secs = ['skincare', 'meal', 'exercise'];
+            secs.forEach(sec => {
+                if (!goriWords[sec]) goriWords[sec] = { col1: [], col2: [], col3: [] };
+                for (let i = 1; i <= 3; i++) {
+                    const dl = document.createElement('datalist'); 
+                    dl.id = `suggest-${sec}-col${i}`;
+                    const wordList = goriWords[sec][`col${i}`] || [];
+                    wordList.forEach(w => { 
+                        const opt = document.createElement('option'); 
+                        opt.value = w; 
+                        dl.appendChild(opt); 
+                    });
+                    container.appendChild(dl);
+                }
+            });
+        } catch (e) {
+            console.error("buildDatalists error:", e);
+        }
     }
 </script>
 </body>
