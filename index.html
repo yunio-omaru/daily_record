@@ -15,6 +15,7 @@
             --morning-color: #ff9800;
             --noon-color: #2196f3;
             --night-color: #9c27b0;
+            --recipe-color: #ff6b6b; /* レシピボタン用のアクセントカラー */
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -44,6 +45,35 @@
         }
         h1 { font-size: 1.3rem; color: var(--primary-color); margin: 0; }
         
+        /* タイトル下のサブヘッダー（レシピリンク等） */
+        .sub-header-bar {
+            background: var(--card-bg);
+            padding: 10px 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: center;
+        }
+        .btn-recipe-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            width: 100%;
+            background-color: var(--recipe-color);
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.9rem;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(255, 107, 107, 0.2);
+            transition: opacity 0.2s;
+        }
+        .btn-recipe-link:active { opacity: 0.85; }
+
         button {
             cursor: pointer;
             border: none;
@@ -191,6 +221,12 @@
             <h1>🌿 My Life Log</h1>
             <button id="btn-refresh" class="btn-secondary">🔄 更新</button>
         </header>
+
+        <div class="sub-header-bar">
+            <a href="https://yunio-omaru.github.io/cook.github.io/" target="_blank" class="btn-recipe-link">
+                🍳 ゴリのレシピwebページを見る ◀
+            </a>
+        </div>
         
         <div class="calendar-header">
             <button id="btn-prev-month" class="btn-secondary">◀</button>
@@ -285,9 +321,9 @@
     // 内部データ管理
     let schedules = {}; 
     let categories = []; let doneRows = [];
-    let selectedDateStr = ""; // 選択中の「YYYY-MM-DD」
-    let activeTimezone = "morning"; // 編集中の時間帯
-    let currentCalendarDate = new Date(); // カレンダー表示用の基準月
+    let selectedDateStr = ""; 
+    let activeTimezone = "morning"; 
+    let currentCalendarDate = new Date(); 
 
     // 初期化用過去ログデータ
     const PAST_JSON_LOGS = {
@@ -379,7 +415,6 @@
             const dStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
             if (dStr === todayStr) cell.classList.add('today');
 
-            // データがあるか判定してドットを付与
             if (hasDataOnDate(dStr)) {
                 let dot = document.createElement('div');
                 dot.classList.add('dot');
@@ -468,7 +503,6 @@
     // --- 編集画面の処理 ---
     function openEditPage() {
         document.getElementById('edit-date-label').innerText = `対象日: ${selectedDateStr}`;
-        // タブを「朝」にリセット
         activeTimezone = 'morning';
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.querySelector('.tab-btn[data-time="morning"]').classList.add('active');
@@ -524,7 +558,6 @@
                 delete schedules[dataKey];
             } else {
                 schedules[dataKey] = data;
-                // サジェストの学習
                 data.forEach(item => {
                     if (item.col1 && !words[sec].col1.includes(item.col1)) words[sec].col1.push(item.col1);
                     if (item.col2 && !words[sec].col2.includes(item.col2)) words[sec].col2.push(item.col2);
@@ -537,14 +570,13 @@
         localStorage.setItem('lifeLogWords', JSON.stringify(words));
         buildDatalists();
         
-        // 詳細画面を再描画して戻る
         openDetailPage(selectedDateStr);
         saveToSpreadsheet();
     }
 
     // --- 通信処理 ---
     async function loadFromSpreadsheet() {
-        document.getElementById('sync-status').innerText = "🔄 クラウドからデータを同期中...";
+        document.getElementById('sync-status').innerText = "🔄 クラウンドからデータを同期中...";
         try {
             const res = await fetch(GAS_API_URL);
             if(res.ok) {
