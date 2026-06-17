@@ -68,9 +68,8 @@
 <body>
 
 <div class="container">
-    <div id="sync-status" class="sync-status-bar">🔄 スプレッドシート同期中...</div>
+    <div id="sync-status" class="sync-status-bar">🔄 スプレッドシートからデータを同期中...</div>
 
-    <!-- カレンダー画面 -->
     <div id="page-calendar" class="page active">
         <header>
             <h1>🌿 My Life Log</h1>
@@ -90,7 +89,6 @@
         </table>
     </div>
 
-    <!-- 詳細画面 -->
     <div id="page-detail" class="page">
         <header>
             <button id="btn-detail-back" class="btn-secondary">◀ 戻る</button>
@@ -103,7 +101,6 @@
         <div class="timezone-block"><div class="timezone-header tz-night">🌙 晩</div><div id="detail-night-content"></div></div>
     </div>
 
-    <!-- 編集画面 -->
     <div id="page-edit" class="page">
         <header>
             <button id="btn-edit-back" class="btn-secondary">◀ 戻る</button>
@@ -149,7 +146,6 @@
     // ⚠️ ご自身のGASウェブアプリURLをここに貼り付けてください
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwZvHEkGI3Z3ZLoovwF4p6t9rbCtG-aMj3UERJF61-jP2dYawyuuecU1Eb60z9u9Wuy/exec";
 
-    // 完全に新設計した変数名（過去の引数や変数を一切引き継がない）
     let goriLogData = {}; 
     let selectedDateStr = ""; 
     let activeTimezone = "morning"; 
@@ -166,7 +162,7 @@
     };
 
     document.addEventListener('DOMContentLoaded', () => {
-        localStorage.clear(); // 古いブラウザキャッシュも完全消去
+        localStorage.clear(); 
 
         document.getElementById('btn-refresh').addEventListener('click', loadFromSpreadsheet);
         document.getElementById('btn-prev-month').addEventListener('click', () => changeMonth(-1));
@@ -314,6 +310,7 @@
             else {
                 goriLogData[dataKey] = data;
                 data.forEach(item => {
+                    // ⚙️ 【修正箇所】ここをwordsからgoriWordsに修正し、エラーを解消しました
                     if (item.col1 && !goriWords[sec].col1.includes(item.col1)) goriWords[sec].col1.push(item.col1);
                     if (item.col2 && !goriWords[sec].col2.includes(item.col2)) goriWords[sec].col2.push(item.col2);
                     if (item.col3 && !goriWords[sec].col3.includes(item.col3)) goriWords[sec].col3.push(item.col3);
@@ -332,14 +329,13 @@
             const res = await fetch(GAS_API_URL);
             if(res.ok) {
                 const data = await res.json();
-                // 迎撃乙女の古い変数(schedulesやcategories)は存在すら無視し、goriLogDataだけをクリーンに読み込む
                 if (data.goriLogData && Object.keys(data.goriLogData).length > 0) {
                     goriLogData = data.goriLogData;
                 }
                 if (data.goriWords) goriWords = data.goriWords;
                 renderCalendar();
                 if (document.getElementById('page-detail').classList.contains('active')) openDetailPage(selectedDateStr);
-                document.getElementById('sync-status').innerText = "✅ 同期完了（クリーン版）";
+                document.getElementById('sync-status').innerText = "✅ 同期完了";
             }
         } catch(e) {
             document.getElementById('sync-status').innerText = "❌ 読み込み同期エラー";
@@ -349,7 +345,6 @@
     async function saveToSpreadsheet() {
         document.getElementById('sync-status').innerText = "💾 クラウドに保存中...";
         try {
-            // ゴリさん専用の変数だけを完全に新規に送信。スプシのA1を強制上書き
             const payload = { goriLogData: goriLogData, goriWords: goriWords };
             await fetch(GAS_API_URL, { method: "POST", body: JSON.stringify(payload) });
             document.getElementById('sync-status').innerText = "✅ スプレッドシートに保存しました！";
