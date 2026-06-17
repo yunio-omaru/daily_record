@@ -3,514 +3,597 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Life Log (過去データ完全復元版)</title>
+    <title>My Life Log</title>
     <style>
         :root {
             --primary-color: #6b8e23;
+            --primary-light: #f0f4e8;
             --bg-color: #f7f9fa;
             --card-bg: #ffffff;
             --text-color: #333;
-            --border-color: #ddd;
+            --border-color: #e0e0e0;
+            --morning-color: #ff9800;
+            --noon-color: #2196f3;
+            --night-color: #9c27b0;
         }
         body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
         }
         .container {
-            max-width: 850px; 
+            max-width: 500px; /* スマホで見やすいジャストサイズ */
             margin: 0 auto;
+            padding: 15px;
+            box-sizing: border-box;
         }
+        
+        /* 共通ヘッダー・ステータス */
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #ffffff;
-            padding: 15px 20px;
+            background: var(--card-bg);
+            padding: 12px 15px;
             border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
             margin-bottom: 10px;
         }
-        h1 { font-size: 1.5rem; color: var(--primary-color); margin: 0; }
+        h1 { font-size: 1.3rem; color: var(--primary-color); margin: 0; }
         
         button {
             cursor: pointer;
             border: none;
-            border-radius: 6px;
-            padding: 8px 16px;
+            border-radius: 8px;
+            padding: 8px 14px;
             font-weight: bold;
-            transition: all 0.2s;
+            font-size: 0.9rem;
+            transition: background 0.2s;
         }
         .btn-main { background-color: var(--primary-color); color: #fff; }
         .btn-main:hover { opacity: 0.9; }
-        
-        .btn-sync { 
-            background-color: #27ae60; 
-            color: white; 
-            border: none; 
-        }
-        .btn-sync:hover { 
-            background-color: #219a52; 
-        }
+        .btn-secondary { background-color: #e0e0e0; color: #333; }
+        .btn-sync { background-color: #27ae60; color: white; }
 
         .sync-status-bar {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: bold;
             color: #27ae60;
             background: #e8f5e9;
-            padding: 8px 15px;
+            padding: 6px 12px;
             border-radius: 8px;
-            margin-bottom: 20px;
-            display: inline-block;
-            width: 100%;
-            box-sizing: border-box;
+            margin-bottom: 15px;
             text-align: center;
         }
 
-        /* 朝・昼 = 晩切り替えタブのスタイル */
-        .tab-container {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        .tab-btn {
-            flex: 1;
-            padding: 12px;
-            background-color: #e0e0e0;
-            color: #555;
-            font-size: 1rem;
-            border-radius: 8px;
-            text-align: center;
-        }
-        .tab-btn.active {
-            background-color: var(--primary-color);
-            color: white;
-        }
+        /* 画面切り替え用の制御 */
+        .page { display: none; }
+        .page.active { display: block; }
 
-        /* セクション・テーブル用スタイル */
-        .section-card {
-            background-color: var(--card-bg);
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 25px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        }
-        .section-title {
-            font-size: 1.2rem;
-            color: var(--primary-color);
-            border-left: 5px solid var(--primary-color);
-            padding-left: 10px;
-            margin-top: 0;
-            margin-bottom: 15px;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 15px;
-        }
-        th, td {
-            border: 1px solid var(--border-color);
-            padding: 10px;
-            text-align: left;
-        }
-        th {
-            background-color: #f1f3f4;
-            font-size: 0.9rem;
-        }
-        
-        input[type="text"] {
-            width: 100%;
-            box-sizing: border-box;
-            padding: 8px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            font-size: 0.95rem;
-        }
-        input[type="text"]:focus {
-            border-color: var(--primary-color);
-            outline: none;
-        }
-        
-        /* 操作用ボタン */
-        .btn-action {
-            padding: 4px 8px;
-            font-size: 0.8rem;
-            background-color: #f1f3f4;
-            color: #333;
-            border: 1px solid #ccc;
-            margin-right: 5px;
-        }
-        .btn-action:hover { background-color: #e4e6e7; }
-        .btn-delete { background-color: #fce8e6; color: #c5221f; border: 1px solid #fad2cf; }
-        .btn-delete:hover { background-color: #fbc7c3; }
-
-        .controls {
+        /* --- 1. カレンダー画面用スタイル --- */
+        .calendar-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin: 15px 0 10px 0;
         }
+        .calendar-title { font-size: 1.2rem; font-weight: bold; }
+        .calendar-table {
+            width: 100%;
+            background: var(--card-bg);
+            border-radius: 12px;
+            border-collapse: collapse;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            overflow: hidden;
+        }
+        .calendar-table th, .calendar-table td {
+            width: 14.28%;
+            text-align: center;
+            padding: 12px 0;
+            position: relative;
+        }
+        .calendar-table th { font-size: 0.8rem; color: #777; background: #f9f9f9; }
+        .calendar-table td { font-size: 1rem; height: 45px; cursor: pointer; }
+        .calendar-table td:active { background: #f0f0f0; }
+        .calendar-table td.empty { cursor: default; }
+        .calendar-table td.empty:active { background: none; }
         
-        .date-picker-container {
-            margin-bottom: 20px;
+        /* 記録がある日のドット(点) */
+        .dot {
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 5px;
+            height: 5px;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+        }
+        /* 今日 */
+        .calendar-table td.today {
+            background-color: var(--primary-light);
+            font-weight: bold;
+            border-radius: 8px;
+        }
+
+        /* --- 2. 詳細表示画面用スタイル --- */
+        .detail-date-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin: 15px 0;
+            text-align: center;
+            color: #444;
+        }
+        .timezone-block {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .timezone-header {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
-            gap: 10px;
-            background: #fff;
-            padding: 10px 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            gap: 5px;
         }
-        .date-picker-container label {
+        .tz-morning { color: var(--morning-color); border-bottom: 2px solid var(--morning-color); padding-bottom: 3px; }
+        .tz-noon { color: var(--noon-color); border-bottom: 2px solid var(--noon-color); padding-bottom: 3px; }
+        .tz-night { color: var(--night-color); border-bottom: 2px solid var(--night-color); padding-bottom: 3px; }
+        
+        .section-sub-title {
+            font-size: 0.85rem;
+            color: #666;
+            margin: 10px 0 5px 0;
             font-weight: bold;
+        }
+        /* スマホ用縦型カードレイアウト */
+        .item-card {
+            background: #f9fbf7;
+            border-left: 4px solid var(--primary-color);
+            padding: 10px;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 8px;
             font-size: 0.9rem;
         }
-        .date-picker-container input[type="date"] {
-            padding: 6px 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            font-size: 0.95rem;
-        }
+        .item-card-title { font-weight: bold; color: #111; margin-bottom: 3px; }
+        .item-card-meta { font-size: 0.8rem; color: #666; display: flex; gap: 10px; }
+        .item-card-meta span { background: #eef2ea; padding: 2px 6px; border-radius: 4px; }
+        .item-card-memo { font-size: 0.85rem; color: #444; margin-top: 4px; line-height: 1.3; }
+        .no-data-text { color: #aaa; font-size: 0.85rem; font-style: italic; padding: 5px 0; }
+
+        /* --- 3. 編集画面用スタイル --- */
+        .tab-container { display: flex; gap: 8px; margin-bottom: 15px; }
+        .tab-btn { flex: 1; padding: 10px; background-color: #e0e0e0; color: #555; border-radius: 8px; }
+        .tab-btn.active { background-color: var(--primary-color); color: white; }
+        
+        .section-card { background: var(--card-bg); border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .section-title { font-size: 1.1rem; color: var(--primary-color); border-left: 4px solid var(--primary-color); padding-left: 8px; margin: 0 0 12px 0; }
+        
+        .edit-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+        .edit-table th, .edit-table td { padding: 6px; border: 1px solid var(--border-color); text-align: left; }
+        .edit-table th { background: #f5f5f5; font-size: 0.8rem; }
+        .edit-table input[type="text"] { width: 100%; box-sizing: border-box; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <header>
-        <h1>🌿 My Life Log</h1>
-        <div>
-            <button id="btn-cloud-load" class="btn-sync">🔄 同期</button>
+    <div id="sync-status" class="sync-status-bar">🔄 スプレッドシートからデータを取得中...</div>
+
+    <div id="page-calendar" class="page active">
+        <header>
+            <h1>🌿 My Life Log</h1>
+            <button id="btn-refresh" class="btn-secondary">🔄 更新</button>
+        </header>
+        
+        <div class="calendar-header">
+            <button id="btn-prev-month" class="btn-secondary">◀</button>
+            <div id="calendar-month-title" class="calendar-title">2026年 6月</div>
+            <button id="btn-next-month" class="btn-secondary">▶</button>
         </div>
-    </header>
-
-    <div id="sync-status" class="sync-status-bar">🔄 スプレッドシートから最新データを同期中...</div>
-
-    <div class="date-picker-container">
-        <label for="current-date">対象日付:</label>
-        <input type="date" id="current-date">
-    </div>
-
-    <div class="tab-container">
-        <button class="tab-btn active" data-time="morning">☀️ 朝</button>
-        <button class="tab-btn" data-time="noon">🌤️ 昼</button>
-        <button class="tab-btn" data-time="night">🌙 晩</button>
-    </div>
-
-    <div class="section-card" id="sec-skincare">
-        <div class="section-title">🧴 スキンケア・美容</div>
-        <table>
+        
+        <table class="calendar-table">
             <thead>
                 <tr>
-                    <th style="width: 35%;">内容 / アイテム</th>
-                    <th style="width: 20%;">分量 / 回数</th>
-                    <th style="width: 30%;">目的 / メモ / 使い方</th>
-                    <th style="width: 15%;">並び替え / 削除</th>
+                    <th style="color:red;">日</th><th>月</th><th>火</th><th>水</th><th>木</th><th>金</th><th style="color:blue;">土</th>
                 </tr>
             </thead>
-            <tbody class="log-tbody"></tbody>
+            <tbody id="calendar-body"></tbody>
         </table>
-        <div class="controls">
+    </div>
+
+    <div id="page-detail" class="page">
+        <header>
+            <button id="btn-detail-back" class="btn-secondary">◀ 戻る</button>
+            <h1 id="header-detail-date">詳細表示</h1>
+            <button id="btn-go-edit" class="btn-main">＋ 編集</button>
+        </header>
+        
+        <div id="detail-date-display" class="detail-date-title">2026年06月15日</div>
+
+        <div class="timezone-block">
+            <div class="timezone-header tz-morning">☀️ 朝</div>
+            <div id="detail-morning-content"></div>
+        </div>
+
+        <div class="timezone-block">
+            <div class="timezone-header tz-noon">🌤️ 昼</div>
+            <div id="detail-noon-content"></div>
+        </div>
+
+        <div class="timezone-block">
+            <div class="timezone-header tz-night">🌙 晩</div>
+            <div id="detail-night-content"></div>
+        </div>
+    </div>
+
+    <div id="page-edit" class="page">
+        <header>
+            <button id="btn-edit-back" class="btn-secondary">◀ 戻る</button>
+            <h1 id="header-edit-date">ログ編集</h1>
+            <button id="btn-edit-save" class="btn-sync">💾 保存</button>
+        </header>
+
+        <div style="margin: 10px 0; font-weight: bold; text-align: center;" id="edit-date-label">対象日: </div>
+
+        <div class="tab-container">
+            <button class="tab-btn active" data-time="morning">☀️ 朝</button>
+            <button class="tab-btn" data-time="noon">🌤️ 昼</button>
+            <button class="tab-btn" data-time="night">🌙 晩</button>
+        </div>
+
+        <div class="section-card" id="sec-skincare">
+            <div class="section-title">🧴 スキンケア・美容</div>
+            <table class="edit-table">
+                <thead><tr><th>内容 / アイテム</th><th>分量</th><th>目的 / メモ</th><th style="width:75px;">操作</th></tr></thead>
+                <tbody class="log-tbody"></tbody>
+            </table>
             <button class="btn-main btn-add-row">＋ 行を追加</button>
         </div>
-    </div>
 
-    <div class="section-card" id="sec-meal">
-        <div class="section-title">🍳 食事・サプリ</div>
-        <table>
-            <thead>
-                <tr>
-                    <th style="width: 35%;">食べたもの / メニュー</th>
-                    <th style="width: 20%;">量</th>
-                    <th style="width: 30%;">メモ</th>
-                    <th style="width: 15%;">並び替え / 削除</th>
-                </tr>
-            </thead>
-            <tbody class="log-tbody"></tbody>
-        </table>
-        <div class="controls">
+        <div class="section-card" id="sec-meal">
+            <div class="section-title">🍳 食事・サプリ</div>
+            <table class="edit-table">
+                <thead><tr><th>食べたもの</th><th>量</th><th>メモ</th><th style="width:75px;">操作</th></tr></thead>
+                <tbody class="log-tbody"></tbody>
+            </table>
             <button class="btn-main btn-add-row">＋ 行を追加</button>
         </div>
-    </div>
 
-    <div class="section-card" id="sec-exercise">
-        <div class="section-title">🏃 運動・その他</div>
-        <table>
-            <thead>
-                <tr>
-                    <th style="width: 35%;">種目 / 行動</th>
-                    <th style="width: 20%;">強度 / 時間</th>
-                    <th style="width: 30%;">メモ</th>
-                    <th style="width: 15%;">並び替え / 削除</th>
-                </tr>
-            </thead>
-            <tbody class="log-tbody"></tbody>
-        </table>
-        <div class="controls">
+        <div class="section-card" id="sec-exercise">
+            <div class="section-title">🏃 運動・その他</div>
+            <table class="edit-table">
+                <thead><tr><th>種目 / 行動</th><th>強度</th><th>メモ</th><th style="width:75px;">操作</th></tr></thead>
+                <tbody class="log-tbody"></tbody>
+            </table>
             <button class="btn-main btn-add-row">＋ 行を追加</button>
         </div>
     </div>
 </div>
 
-<datalist id="suggest-skincare-col1"></datalist>
-<datalist id="suggest-skincare-col2"></datalist>
-<datalist id="suggest-skincare-col3"></datalist>
-<datalist id="suggest-meal-col1"></datalist>
-<datalist id="suggest-meal-col2"></datalist>
-<datalist id="suggest-meal-col3"></datalist>
-<datalist id="suggest-exercise-col1"></datalist>
-<datalist id="suggest-exercise-col2"></datalist>
-<datalist id="suggest-exercise-col3"></datalist>
+<div id="datalist-container"></div>
 
 <script>
-    // デプロイしていただいた新しいGASのURL
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwZvHEkGI3Z3ZLoovwF4p6t9rbCtG-aMj3UERJF61-jP2dYawyuuecU1Eb60z9u9Wuy/exec";
 
-    // スプシ同期用オブジェクト
-    let categories = [];
+    // 内部データ管理
     let schedules = {}; 
-    let doneRows = [];
-    let activeTimezone = 'morning'; // デフォルトは「朝」
+    let categories = []; let doneRows = [];
+    let selectedDateStr = ""; // 選択中の「YYYY-MM-DD」
+    let activeTimezone = "morning"; // 編集中の時間帯
+    let currentCalendarDate = new Date(); // カレンダー表示用の基準月
 
-    // 🌟 ご提示いただいた過去のサジェスト履歴を完全初期値として移植
-    let words = {
-        skincare: {
-            col1: ["A･TRUE：オリジン ピュア バランシング クレンジングオイル","松山油脂：アミノ酸浸透水","スキンフード：キャロットトナーパッド","Cosrx：RXザ・6ペプチドスキンブースターセラム","イズエンツリー：ヒアルロン酸トナー","Cosrx：RXザ・アルファアルブチン２","成分エディター：グリーントマトNMNポアリフティングアンプル","DRX：AZAクリア","ラ ロッシュ ポゼ：シカプラスト リペアクリーム B5+","皮膚科：ステロイドクリーム","マミー：ＵＶアクアミルク","牛乳石鹸：青箱","ビオレ：ビオレザフェイス(黄)"],
-            col2: ["ポンプ：2プッシュ","ポンプ：4プッシュ","1枚","10円玉大","スポイト：1~1.5","スポイト：1","米粒2粒x2","米粒3粒","100円玉大(立方)","1プッシュ"],
-            col3: ["手に軽く広げたら頬から全顔優しくなじませる","手に軽く広げたら頬から全顔優しくなじませる＞少し待って乳化","両頬、おでこ、鼻 軽く手で押し塗り","優しく全顔ふき取り＞2枚に割いて両頬2～5分パック","両手を軽くすり合わせ、頬から全顔に押し塗り","手を皿にして指につけて、それぞれの頬、残りを全顔に押し塗り","両頬、おでこに少量ずつ点置き後、全顔になじむよう押し塗り(目の上など乾燥しやすいところは避ける)","赤みやかさかさ、ニキビ以外のぽつぽつ部分に点置き押し塗り","全身洗った後、優しく洗顔","頬、鼻中心に全顔に優しく押し広げる＞30s～1min待ってすすぎ","全身洗った後、最後に優しく洗顔"]
-        },
-        meal: { col1: [], col2: [], col3: [] },
-        exercise: {
-            col1: ["ランニング"], col2: [], col3: ["家から大橋駅"]
-        }
-    };
-
-    // 🌟 ご提示いただいた「2026-06-14」「2026-06-15」等の過去ログを新しいスプシ構造に完全変換して初期内蔵
+    // 初期化用過去ログデータ
     const PAST_JSON_LOGS = {
-        "2026-06-15_morning_skincare": [{"col1":"A･TRUE：オリジン ピュア バランシング クレンジングオイル","col2":"ポンプ：2プッシュ","col3":"手に軽く広げたら頬から全顔優しくなじませる＞少し待って乳化"},{"col1":"松山油脂：アミノ酸浸透水","col2":"ポンプ：4プッシュ","col3":"両頬、おでこ、鼻 軽く手で押し塗り"},{"col1":"スキンフード：キャロットトナーパッド","col2":"1枚","col3":"優しく全顔ふき取り＞2枚に割いて両頬2～5分パック"},{"col1":"Cosrx：RXザ・6ペプチドスキンブースターセラム","col2":"10円玉大","col3":"両手を軽くすり合わせ、頬から全顔に押し塗り"},{"col1":"イズエンツリー：ヒアルロン酸トナー","col2":"10円玉大","col3":"両手を軽くすり合わせ、頬から全顔に押し塗り"},{"col1":"Cosrx：RXザ・アルファアルブチン２","col2":"スポイト：1~1.5","col3":"手を皿にして指につけて、それぞれの頬、残りを全顔に押し塗り"},{"col1":"成分エディター：グリーントマトNMNポアリフティングアンプル","col2":"スポイト：1","col3":"手を皿にして指につけて、それぞれの頬、残りを全顔に押し塗り"},{"col1":"DRX：AZAクリア","col2":"米粒2粒x2","col3":"両頬、おでこに少量ずつ点置き後、全顔になじむよう押し塗り(目の上など乾燥しやすいところは避ける)"},{"col1":"ラ ロッシュ ポゼ：シカプラスト リペアクリーム B5+ \n","col2":"米粒2粒x2","col3":"両頬、おでこに少量ずつ点置き後、全顔になじむよう押し塗り(目の上など乾燥しやすいところは避ける)"},{"col1":"皮膚科：ステロイドクリーム","col2":"米粒3粒","col3":"赤みやかさかさ、ニキビ以外のぽつぽつ部分に点置き押し塗り"},{"col1":"マミー：ＵＶアクアミルク","col2":"100円玉大(立方)","col3":""}],
+        "2026-06-15_morning_skincare": [{"col1":"A･TRUE：オリジン ピュア バランシング クレンジングオイル","col2":"ポンプ：2プッシュ","col3":"手に軽く広げたら頬から全顔優しくなじませる＞少し待って乳化"},{"col1":"松山油脂：アミノ酸浸透水","col2":"ポンプ：4プッシュ","col3":"両頬、おでこ、鼻 軽く手で押し塗り"},{"col1":"スキンフード：キャロットトナーパッド","col2":"1枚","col3":"優しく全顔ふき取り＞2枚に割いて両頬2～5分パック"},{"col1":"Cosrx：RXザ・6ペプチドスキンブースターセラム","col2":"10円玉大","col3":"両手を軽くすり合わせ、頬から全顔に押し塗り"},{"col1":"イズエンツリー：ヒアルロン酸トナー","col2":"10円玉大","col3":"両手を軽くすり合わせ、頬から全顔に押し塗り"},{"col1":"Cosrx：RXザ・アルファアルブチン２","col2":"スポイト：1~1.5","col3":"手を皿にして指につけて、それぞれの頬、残りを全顔に押し塗り"},{"col1":"成分エディター：グリーントマトNMNポアリフティングアンプル","col2":"スポイト：1","col3":"手を皿にして指につけて、それぞれの頬、残りを全顔に押し塗り"},{"col1":"DRX：AZAクリア","col2":"米粒2粒x2","col3":"両頬、おでこに少量ずつ点置き後、全顔になじむよう押し塗り(目の上など乾燥しやすいところは避ける)"},{"col1":"ラ ロッシュ ポゼ：シカプラスト リペアクリーム B5+","col2":"米粒2粒x2","col3":"両頬、おでこに少量ずつ点置き後、全顔になじむよう押し塗り(目の上など乾燥しやすいところは避ける)"},{"col1":"皮膚科：ステロイドクリーム","col2":"米粒3粒","col3":"赤みやかさかさ、ニキビ以外のぽつぽつ部分に点置き押し塗り"},{"col1":"マミー：ＵＶアクアミルク","col2":"100円玉大(立方)","col3":""}],
         "2026-06-14_night_skincare": [{"col1":"牛乳石鹸：青箱","col2":"","col3":"全身洗った後、最後に優しく洗顔"},{"col1":"ビオレ：ビオレザフェイス(黄)","col2":"1プッシュ","col3":"頬、鼻中心に全顔に優しく押し広げる＞30s～1min待ってすすぎ"},{"col1":"松山油脂：アミノ酸浸透水","col2":"","col3":""},{"col1":"スキンフード：キャロットトナーパッド","col2":"","col3":""},{"col1":"Cosrx：RXザ・6ペプチドスキンブースターセラム","col2":"","col3":""},{"col1":"Cosrx：RXザ・アルファアルブチン２","col2":"","col3":""},{"col1":"成分エディター：グリーントマトNMNポアリフティングアンプル","col2":"","col3":""},{"col1":"DRX：AZAクリア","col2":"","col3":""},{"col1":"ラ ロッシュ ポゼ：シカプラスト リペアクリーム B5+","col2":"","col3":""},{"col1":"皮膚科：ステロイドクリーム","col2":"","col3":""}],
         "2026-06-14_night_exercise": [{"col1":"ランニング","col2":"","col3":"家から大橋駅"}]
     };
 
-    // 初期化処理
+    let words = {
+        skincare: {
+            col1: ["A･TRUE：オリジン ピュア バランシング クレンジングオイル","松山油脂：アミノ酸浸透水","スキンフード：キャロットトナーパッド","Cosrx：RXザ・6ペプチドスキンブースターセラム","イズエンツリー：ヒアルロン酸トナー","Cosrx：RXザ・アルファアルブチン２","成分エディター：グリーントマトNMNポアリフティングアンプル","DRX：AZAクリア","ラ ロッシュ ポゼ：シカプラスト リペアクリーム B5+ ","皮膚科：ステロイドクリーム","マミー：ＵＶアクアミルク","牛乳石鹸：青箱","ビオレ：ビオレザフェイス(黄)"],
+            col2: ["ポンプ：2プッシュ","ポンプ：4プッシュ","1枚","10円玉大","スポイト：1~1.5","スポイト：1","米粒2粒x2","米粒3粒","100円玉大(立方)","1プッシュ"],
+            col3: ["手に軽く広げたら頬から全顔優しくなじませる","手に軽く広げたら頬から全顔優しくなじませる＞少し待って乳化","両頬、おでこ、鼻 軽く手で押し塗り","優しく全顔ふき取り＞2枚に割いて両頬2～5分パック","両手を軽くすり合わせ、頬から全顔に押し塗り","手を皿にして指につけて、それぞれの頬、残りを全顔に押し塗り","両頬、おでこに少量ずつ点置き後、全顔になじむよう押し塗り(目の上など乾燥しやすいところは避ける)","赤みやかさかさ、ニキビ以外のぽつぽつ部分に点置き押し塗り","全身洗った後、優しく洗顔","頬、鼻中心に全顔に優しく押し広げる＞30s～1min待ってすすぎ","全身洗った後、最後に優しく洗顔"]
+        }, meal: {col1:[], col2:[], col3:[]}, exercise: {col1:["ランニング"], col2:[], col3:["家から大橋駅"]}
+    };
+
     document.addEventListener('DOMContentLoaded', () => {
-        const dateInput = document.getElementById('current-date');
-        // デフォルト表示をデータのある「2026-06-15」に設定
-        dateInput.value = "2026-06-15";
-
-        // まず内蔵の過去ログを読み込む
         schedules = Object.assign({}, PAST_JSON_LOGS);
-
-        // キャッシュ（前回のローカル保存）があればマージ
         const localSch = localStorage.getItem('ss_schedules2');
-        if (localSch) {
-            const parsed = JSON.parse(localSch);
-            schedules = Object.assign(schedules, parsed);
-        }
-
+        if (localSch) schedules = Object.assign(schedules, JSON.parse(localSch));
         const localWords = localStorage.getItem('lifeLogWords');
         if (localWords) words = JSON.parse(localWords);
 
-        // イベント設定
-        dateInput.addEventListener('change', renderAllSections);
-        document.getElementById('btn-cloud-load').addEventListener('click', loadFromSpreadsheet);
+        // イベント登録
+        document.getElementById('btn-refresh').addEventListener('click', loadFromSpreadsheet);
+        document.getElementById('btn-prev-month').addEventListener('click', () => changeMonth(-1));
+        document.getElementById('btn-next-month').addEventListener('click', () => changeMonth(1));
+        document.getElementById('btn-detail-back').addEventListener('click', () => showPage('page-calendar'));
+        document.getElementById('btn-edit-back').addEventListener('click', () => showPage('page-detail'));
+        document.getElementById('btn-go-edit').addEventListener('click', openEditPage);
+        document.getElementById('btn-edit-save').addEventListener('click', saveEditData);
 
-        // 朝・昼・晩タブの切り替えイベント
+        // 編集画面の時間帯タブ
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                 e.target.classList.add('active');
                 activeTimezone = e.target.getAttribute('data-time');
-                renderAllSections();
+                renderEditSections();
             });
         });
 
-        // 各セクションの「行を追加」ボタン設定
-        document.querySelectorAll('.section-card').forEach(card => {
-            const sectionKey = card.id.replace('sec-', '');
-            card.querySelector('.btn-add-row').addEventListener('click', () => {
-                addRow(sectionKey, '', '', '');
-                saveCurrentData();
-            });
+        // 編集の追加ボタン
+        document.querySelectorAll('.btn-add-row').forEach(btn => {
+            const sec = btn.closest('.section-card').id.replace('sec-', '');
+            btn.addEventListener('click', () => addEditRow(sec, '', '', ''));
         });
 
-        // 描画を実行し、スプレッドシートへの初回強制引っ越しバックアップ
-        renderAllSections();
+        buildDatalists();
+        renderCalendar();
         loadFromSpreadsheet();
     });
 
-    // スプレッドシートからの読み込み同期処理(GET)
+    function showPage(pageId) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(pageId).classList.add('active');
+        if(pageId === 'page-calendar') renderCalendar();
+    }
+
+    // --- カレンダー処理 ---
+    function renderCalendar() {
+        const year = currentCalendarDate.getFullYear();
+        const month = currentCalendarDate.getMonth();
+        document.getElementById('calendar-month-title').innerText = `${year}年 ${month + 1}月`;
+
+        const firstDay = new Date(year, month, 1).getDay();
+        const lastDate = new Date(year, month + 1, 0).getDate();
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        const tbody = document.getElementById('calendar-body');
+        tbody.innerHTML = '';
+
+        let row = document.createElement('tr');
+        for (let i = 0; i < firstDay; i++) {
+            let cell = document.createElement('td');
+            cell.classList.add('empty');
+            row.appendChild(cell);
+        }
+
+        for (let date = 1; date <= lastDate; date++) {
+            if (row.children.length === 7) {
+                tbody.appendChild(row);
+                row = document.createElement('tr');
+            }
+
+            let cell = document.createElement('td');
+            cell.innerText = date;
+
+            const dStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
+            if (dStr === todayStr) cell.classList.add('today');
+
+            // データがあるか判定してドットを付与
+            if (hasDataOnDate(dStr)) {
+                let dot = document.createElement('div');
+                dot.classList.add('dot');
+                cell.appendChild(dot);
+            }
+
+            cell.addEventListener('click', () => openDetailPage(dStr));
+            row.appendChild(cell);
+        }
+
+        while (row.children.length < 7) {
+            let cell = document.createElement('td');
+            cell.classList.add('empty');
+            row.appendChild(cell);
+        }
+        tbody.appendChild(row);
+    }
+
+    function changeMonth(diff) {
+        currentCalendarDate.setMonth(currentCalendarDate.getMonth() + diff);
+        renderCalendar();
+    }
+
+    function hasDataOnDate(dateStr) {
+        const tzs = ['morning', 'noon', 'night'];
+        const secs = ['skincare', 'meal', 'exercise'];
+        for (let tz of tzs) {
+            for (let sec of secs) {
+                if (schedules[`${dateStr}_${tz}_${sec}`] && schedules[`${dateStr}_${tz}_${sec}`].length > 0) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    // --- 詳細表示処理 ---
+    function openDetailPage(dateStr) {
+        selectedDateStr = dateStr;
+        const parts = dateStr.split('-');
+        document.getElementById('detail-date-display').innerText = `${parts[0]}年${parts[1]}月${parts[2]}日`;
+        
+        renderDetailBlock('morning');
+        renderDetailBlock('noon');
+        renderDetailBlock('night');
+
+        showPage('page-detail');
+    }
+
+    function renderDetailBlock(tz) {
+        const container = document.getElementById(`detail-${tz}-content`);
+        container.innerHTML = '';
+        
+        const secs = { skincare: '🧴 スキンケア', meal: '🍳 食事', exercise: '🏃 運動' };
+        let hasAnyData = false;
+
+        for (let [secKey, secName] of Object.entries(secs)) {
+            const items = schedules[`${selectedDateStr}_${tz}_${secKey}`] || [];
+            const validItems = items.filter(i => i.col1 || i.col2 || i.col3);
+
+            if (validItems.length > 0) {
+                hasAnyData = true;
+                let secTitle = document.createElement('div');
+                secTitle.classList.add('section-sub-title');
+                secTitle.innerText = secName;
+                container.appendChild(secTitle);
+
+                validItems.forEach(item => {
+                    let card = document.createElement('div');
+                    card.classList.add('item-card');
+                    card.innerHTML = `
+                        <div class="item-card-title">${item.col1 || '---'}</div>
+                        ${item.col2 ? `<div class="item-card-meta"><span>${item.col2}</span></div>` : ''}
+                        ${item.col3 ? `<div class="item-card-memo">${item.col3.replace(/\n/g, '<br>')}</div>` : ''}
+                    `;
+                    container.appendChild(card);
+                });
+            }
+        }
+
+        if (!hasAnyData) {
+            container.innerHTML = '<div class="no-data-text">記録はありません</div>';
+        }
+    }
+
+    // --- 編集画面の処理 ---
+    function openEditPage() {
+        document.getElementById('edit-date-label').innerText = `対象日: ${selectedDateStr}`;
+        // タブを「朝」にリセット
+        activeTimezone = 'morning';
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector('.tab-btn[data-time="morning"]').classList.add('active');
+        
+        renderEditSections();
+        showPage('page-edit');
+    }
+
+    function renderEditSections() {
+        const secs = ['skincare', 'meal', 'exercise'];
+        secs.forEach(sec => {
+            const tbody = document.querySelector(`#sec-${sec} .log-tbody`);
+            tbody.innerHTML = '';
+            const items = schedules[`${selectedDateStr}_${activeTimezone}_${sec}`] || [];
+            
+            if(items.length === 0) {
+                addEditRow(sec, '', '', '');
+            } else {
+                items.forEach(item => addEditRow(sec, item.col1 || '', item.col2 || '', item.col3 || ''));
+            }
+        });
+    }
+
+    function addEditRow(secKey, c1, c2, c3) {
+        const tbody = document.querySelector(`#sec-${secKey} .log-tbody`);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><input type="text" class="col1" value="${c1}" list="suggest-${secKey}-col1"></td>
+            <td><input type="text" class="col2" value="${c2}" list="suggest-${secKey}-col2"></td>
+            <td><input type="text" class="col3" value="${c3}" list="suggest-${secKey}-col3"></td>
+            <td><button class="btn-action btn-delete">削除</button></td>
+        `;
+        tr.querySelector('.btn-delete').addEventListener('click', () => {
+            tr.remove();
+        });
+        tbody.appendChild(tr);
+    }
+
+    function saveEditData() {
+        const secs = ['skincare', 'meal', 'exercise'];
+        secs.forEach(sec => {
+            const rows = document.querySelectorAll(`#sec-${sec} .log-tbody tr`);
+            const data = [];
+            rows.forEach(row => {
+                const col1 = row.querySelector('.col1').value.trim();
+                const col2 = row.querySelector('.col2').value.trim();
+                const col3 = row.querySelector('.col3').value.trim();
+                if (col1 || col2 || col3) data.push({ col1, col2, col3 });
+            });
+
+            const dataKey = `${selectedDateStr}_${activeTimezone}_${sec}`;
+            if (data.length === 0) {
+                delete schedules[dataKey];
+            } else {
+                schedules[dataKey] = data;
+                // サジェストの学習
+                data.forEach(item => {
+                    if (item.col1 && !words[sec].col1.includes(item.col1)) words[sec].col1.push(item.col1);
+                    if (item.col2 && !words[sec].col2.includes(item.col2)) words[sec].col2.push(item.col2);
+                    if (item.col3 && !words[sec].col3.includes(item.col3)) words[sec].col3.push(item.col3);
+                });
+            }
+        });
+
+        localStorage.setItem('ss_schedules2', JSON.stringify(schedules));
+        localStorage.setItem('lifeLogWords', JSON.stringify(words));
+        buildDatalists();
+        
+        // 詳細画面を再描画して戻る
+        openDetailPage(selectedDateStr);
+        saveToSpreadsheet();
+    }
+
+    // --- 通信処理 ---
     async function loadFromSpreadsheet() {
-        document.getElementById('sync-status').innerText = "🔄 スプレッドシートから最新データを同期中...";
+        document.getElementById('sync-status').innerText = "🔄 クラウドからデータを同期中...";
         try {
             const res = await fetch(GAS_API_URL);
             if(res.ok) {
                 const data = await res.json();
-                
-                // スプシ側にデータがあれば合体（ローカル＆内蔵優先で新しいものは追記）
                 if (data.schedules && Object.keys(data.schedules).length > 0) {
                     schedules = Object.assign({}, schedules, data.schedules);
                 }
                 categories = data.categories || [];
-                
                 localStorage.setItem('ss_schedules2', JSON.stringify(schedules));
-                
-                renderAllSections();
-                document.getElementById('sync-status').innerText = "✅ スプレッドシート連携稼働中 (朝昼晩・過去ログ完全復元)";
+                renderCalendar();
+                if (document.getElementById('page-detail').classList.contains('active')) {
+                    openDetailPage(selectedDateStr);
+                }
+                document.getElementById('sync-status').innerText = "✅ スプレッドシート同期完了";
             }
         } catch(e) {
-            document.getElementById('sync-status').innerText = "❌ 読み込み同期エラー (内蔵データで動作中)";
-            renderAllSections();
+            document.getElementById('sync-status').innerText = "❌ 読み込み同期エラー (ローカルで稼働)";
         }
     }
 
-    // スプレッドシートへの書き込み同期処理(POST)
     async function saveToSpreadsheet() {
-        document.getElementById('sync-status').innerText = "💾 スプレッドシートに保存中...";
+        document.getElementById('sync-status').innerText = "💾 クラウドに保存中...";
         try {
             await fetch(GAS_API_URL, { 
                 method: "POST", 
                 body: JSON.stringify({ categories, schedules, doneRows }) 
             });
-            document.getElementById('sync-status').innerText = "✅ 全端末へ変更データをクラウド保存しました！";
+            document.getElementById('sync-status').innerText = "✅ スプレッドシートに保存しました！";
         } catch(e) {
             document.getElementById('sync-status').innerText = "❌ クラウド保存エラー";
         }
     }
 
-    // 画面の全セクションを描画
-    function renderAllSections() {
-        updateDatalists();
-        const dateStr = document.getElementById('current-date').value;
-        const sections = ['skincare', 'meal', 'exercise'];
-
-        sections.forEach(sec => {
-            const tbody = document.querySelector(`#sec-${sec} .log-tbody`);
-            tbody.innerHTML = '';
-
-            // スプシ側キー構造: "日付_時間帯_セクション名" (例: 2026-06-15_morning_skincare)
-            const dataKey = `${dateStr}_${activeTimezone}_${sec}`;
-            const rowsData = schedules[dataKey] || [];
-
-            if (rowsData.length === 0) {
-                // データが空なら入力用に1行空欄を作る
-                addRow(sec, '', '', '');
-            } else {
-                rowsData.forEach(item => {
-                    addRow(sec, item.col1 || '', item.col2 || '', item.col3 || '');
-                });
-            }
-        });
-    }
-
-    // テーブルに行を追加する関数
-    function addRow(sectionKey, c1, c2, c3) {
-        const tbody = document.querySelector(`#sec-${sectionKey} .log-tbody`);
-        const tr = document.createElement('tr');
-
-        tr.innerHTML = `
-            <td><input type="text" class="input-cell col1" value="${c1}" list="suggest-${sectionKey}-col1"></td>
-            <td><input type="text" class="input-cell col2" value="${c2}" list="suggest-${sectionKey}-col2"></td>
-            <td><input type="text" class="input-cell col3" value="${c3}" list="suggest-${sectionKey}-col3"></td>
-            <td>
-                <button class="btn-action btn-up">▲</button>
-                <button class="btn-action btn-down">▼</button>
-                <button class="btn-action btn-delete">削除</button>
-            </td>
-        `;
-
-        // 入力変更で即座に保存
-        tr.querySelectorAll('.input-cell').forEach(input => {
-            input.addEventListener('change', () => {
-                saveCurrentData();
-            });
-        });
-
-        // 並び替え・削除ボタン
-        tr.querySelector('.btn-up').addEventListener('click', () => {
-            if (tr.previousElementSibling) {
-                tbody.insertBefore(tr, tr.previousElementSibling);
-                saveCurrentData();
-            }
-        });
-        tr.querySelector('.btn-down').addEventListener('click', () => {
-            if (tr.nextElementSibling) {
-                tbody.insertBefore(tr.nextElementSibling, tr);
-                saveCurrentData();
-            }
-        });
-        tr.querySelector('.btn-delete').addEventListener('click', () => {
-            if (confirm('この行を削除しますか？')) {
-                tr.remove();
-                saveCurrentData();
-            }
-        });
-
-        tbody.appendChild(tr);
-    }
-
-    // 入力データをすべて集計してスプシに送信
-    function saveCurrentData() {
-        const dateStr = document.getElementById('current-date').value;
-        const sections = ['skincare', 'meal', 'exercise'];
-
-        sections.forEach(sec => {
-            const dataKey = `${dateStr}_${activeTimezone}_${sec}`;
-            const grabbed = grabTableData(sec);
-            
-            if (grabbed.length === 0) {
-                delete schedules[dataKey];
-            } else {
-                schedules[dataKey] = grabbed;
-                learnWords(sec, grabbed);
-            }
-        });
-
-        localStorage.setItem('ss_schedules2', JSON.stringify(schedules));
-        updateDatalists();
-        saveToSpreadsheet();
-    }
-
-    // テーブル要素からデータを抽出
-    function grabTableData(sectionKey) {
-        const data = [];
-        const rows = document.querySelectorAll(`#sec-${sectionKey} .log-tbody tr`);
-        rows.forEach(row => {
-            const col1 = row.querySelector('.col1').value.trim();
-            const col2 = row.querySelector('.col2').value.trim();
-            const col3 = row.querySelector('.col3').value.trim();
-            if (col1 || col2 || col3) {
-                data.push({ col1, col2, col3 });
-            }
-        });
-        return data;
-    }
-
-    // サジェストワードの学習
-    function learnWords(sectionKey, dataArray) {
-        dataArray.forEach(item => {
-            if (item.col1 && !words[sectionKey].col1.includes(item.col1)) words[sectionKey].col1.push(item.col1);
-            if (item.col2 && !words[sectionKey].col2.includes(item.col2)) words[sectionKey].col2.push(item.col2);
-            if (item.col3 && !words[sectionKey].col3.includes(item.col3)) words[sectionKey].col3.push(item.col3);
-        });
-        localStorage.setItem('lifeLogWords', JSON.stringify(words));
-    }
-
-    // サジェスト表示の更新
-    function updateDatalists() {
-        const sections = ['skincare', 'meal', 'exercise'];
-        sections.forEach(sec => {
+    // --- サジェスト用HTML作成 ---
+    function buildDatalists() {
+        const container = document.getElementById('datalist-container');
+        container.innerHTML = '';
+        const secs = ['skincare', 'meal', 'exercise'];
+        secs.forEach(sec => {
             for (let i = 1; i <= 3; i++) {
-                const datalist = document.getElementById(`suggest-${sec}-col${i}`);
-                if (!datalist) continue;
-                datalist.innerHTML = '';
+                const dl = document.createElement('datalist');
+                dl.id = `suggest-${sec}-col${i}`;
                 const wordList = words[sec][`col${i}`] || [];
                 wordList.forEach(w => {
-                    const option = document.createElement('option');
-                    option.value = w;
-                    datalist.appendChild(option);
+                    const opt = document.createElement('option');
+                    opt.value = w;
+                    dl.appendChild(opt);
                 });
+                container.appendChild(dl);
             }
         });
     }
