@@ -27,7 +27,11 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            background: #ffffff;
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+            margin-bottom: 10px;
         }
         h1 { font-size: 1.5rem; color: var(--primary-color); margin: 0; }
         
@@ -39,609 +43,379 @@
             font-weight: bold;
             transition: all 0.2s;
         }
-        .btn-main { background-color: var(--primary-color); color: white; }
-        .btn-main:hover { background-color: #55721c; }
-        .btn-sub { background-color: #e0e0e0; color: #333; }
-        .btn-sub:hover { background-color: #d0d0d0; }
-        .btn-sync { background-color: #27ae60; color: white; margin-right: 10px; }
-        .btn-sync:hover { background-color: #219a52; }
+        .btn-main { background-color: var(--primary-color); color: #fff; }
+        .btn-main:hover { opacity: 0.9; }
+        
+        .btn-sync { 
+            background-color: #27ae60; 
+            color: white; 
+            border: none; 
+        }
+        .btn-sync:hover { 
+            background-color: #219a52; 
+        }
 
-        /* 同期設定パネル */
-        .config-panel {
-            background: #dfe4ea;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 20px;
+        .sync-status-bar {
             font-size: 0.85rem;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .config-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .config-row label {
-            width: 130px;
             font-weight: bold;
-        }
-        .config-row input {
-            padding: 6px; border: 1px solid #ccc; border-radius: 4px; flex: 1;
-        }
-        .status-bar { font-weight: bold; color: #27ae60; margin-top: 5px; }
-
-        /* カレンダー */
-        .calendar-container {
-            background: var(--card-bg);
-            padding: 15px;
+            color: #27ae60;
+            background: #e8f5e9;
+            padding: 8px 15px;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             margin-bottom: 20px;
-        }
-        .calendar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 5px;
+            display: inline-block;
+            width: 100%;
+            box-sizing: border-box;
             text-align: center;
         }
-        .day-name { font-weight: bold; font-size: 0.8rem; color: #666; padding-bottom: 5px; }
-        .day {
-            padding: 10px 0;
-            background: #f9f9f9;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.9rem;
-        }
-        .day:hover { background: #eef2e6; }
-        .day.selected { background: var(--primary-color); color: white; font-weight: bold; }
-        .day.has-data::after {
-            content: '●';
-            display: block;
-            font-size: 0.6rem;
-            color: #ff8c00;
-            line-height: 0.5;
-        }
-        .day.selected.has-data::after { color: white; }
 
-        /* 時間帯切り替えタブ */
-        .time-tabs {
-            display: flex;
-            gap: 5px;
-            margin-bottom: 15px;
-            border-bottom: 2px solid #e0e0e0;
-            padding-bottom: 5px;
-        }
-        .tab-btn {
-            background: #e0e0e0;
-            color: #666;
-            padding: 6px 20px;
-            border-radius: 4px 4px 0 0;
-        }
-        .tab-btn.active {
-            background: var(--primary-color);
-            color: white;
-        }
-
-        /* 詳細・編集エリア */
-        .card {
-            background: var(--card-bg);
+        /* セクション・テーブル用スタイル */
+        .section-card {
+            background-color: var(--card-bg);
+            border-radius: 10px;
             padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
-        .date-title {
+        .section-title {
             font-size: 1.2rem;
-            border-bottom: 2px solid var(--primary-color);
-            padding-bottom: 5px;
+            color: var(--primary-color);
+            border-left: 5px solid var(--primary-color);
+            padding-left: 10px;
             margin-top: 0;
             margin-bottom: 15px;
         }
-        .section-title {
-            font-size: 1rem;
-            color: #444;
-            margin-top: 15px;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-        }
-        .section-title::before {
-            content: '■';
-            color: var(--primary-color);
-            margin-right: 6px;
-            font-size: 0.8rem;
-        }
-
-        /* 閲覧モード表示 */
-        .view-list { padding-left: 20px; margin: 5px 0; font-size: 0.95rem; }
-        .view-list li { margin-bottom: 4px; }
-        .no-data { color: #999; font-style: italic; font-size: 0.9rem; padding-left: 20px; }
-
-        /* 編集モード テーブル */
-        table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
-        th { text-align: left; font-size: 0.85rem; color: #666; padding: 4px; }
-        td { padding: 6px 2px; vertical-align: middle; }
         
-        input[type="text"] {
+        table {
             width: 100%;
-            padding: 6px;
-            box-sizing: border-box;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        th, td {
             border: 1px solid var(--border-color);
-            border-radius: 4px;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f1f3f4;
             font-size: 0.9rem;
         }
-        input[type="text"]:focus { border-color: var(--primary-color); outline: none; }
         
-        /* 並び替えボタンのスタイル */
-        .move-btns { display: flex; gap: 2px; }
-        .btn-move {
-            background: #f0f0f0;
-            color: #555;
-            padding: 4px 6px;
-            font-size: 0.75rem;
-            border-radius: 3px;
+        input[type="text"], input[type="time"] {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.95rem;
         }
-        .btn-move:hover { background: #e0e0e0; color: #000; }
+        input[type="text"]:focus, input[type="time"]:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
         
-        .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
-        .hidden { display: none !important; }
+        /* 操作用ボタン */
+        .btn-action {
+            padding: 4px 8px;
+            font-size: 0.8rem;
+            background-color: #f1f3f4;
+            color: #333;
+            border: 1px solid #ccc;
+            margin-right: 5px;
+        }
+        .btn-action:hover { background-color: #e4e6e7; }
+        .btn-delete { background-color: #fce8e6; color: #c5221f; border: 1px solid #fad2cf; }
+        .btn-delete:hover { background-color: #fbc7c3; }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .date-picker-container {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #fff;
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .date-picker-container label {
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        .date-picker-container input[type="date"] {
+            padding: 6px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.95rem;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="config-panel">
-        📊 <strong>スプレッドシート同期設定</strong>
-        <div class="config-row">
-            <label for="cfg-gas-url">GASウェブアプリURL:</label>
-            <input type="text" id="cfg-gas-url" value="https://script.google.com/macros/s/AKfycbwZvHEkGI3Z3ZLoovwF4p6t9rbCtG-aMj3UERJF61-jP2dYawyuuecU1Eb60z9u9Wuy/exec">
-        </div>
-        <div class="config-row">
-            <label for="cfg-ss-id">スプレッドシートID:</label>
-            <input type="text" id="cfg-ss-id" value="AKfycbwZvHEkGI3Z3ZLoovwF4p6t9rbCtG-aMj3UERJF61-jP2dYawyuuecU1Eb60z9u9Wuy" placeholder="スプレッドシートのID">
-        </div>
-        <div class="config-row" style="justify-content: flex-end;">
-            <button id="btn-save-config" class="btn-main" style="padding: 5px 12px; font-size:0.8rem;">設定を保存</button>
-        </div>
-        <span id="sync-status" class="status-bar"></span>
-    </div>
-
     <header>
         <h1>🌿 My Life Log</h1>
         <div>
-            <button id="btn-cloud-load" class="btn-sync">🔄 クラウドから読込</button>
-            <button id="btn-register" class="btn-main">[+登録]</button>
+            <button id="btn-cloud-load" class="btn-sync">🔄 同期</button>
         </div>
     </header>
 
-    <div class="calendar-container">
-        <div class="calendar-header">
-            <button id="btn-prev" class="btn-sub">◀</button>
-            <span id="calendar-month" style="font-weight: bold;"></span>
-            <button id="btn-next" class="btn-sub">▶</button>
-        </div>
-        <div class="calendar-grid" id="calendar-grid"></div>
+    <div id="sync-status" class="sync-status-bar">🔄 スプレッドシートから最新データを同期中...</div>
+
+    <div class="date-picker-container">
+        <label for="current-date">対象日付:</label>
+        <input type="date" id="current-date">
     </div>
 
-    <div class="card">
-        <h2 id="selected-date-label" class="date-title">日付を選択してください</h2>
-        
-        <div class="time-tabs">
-            <button class="tab-btn active" data-time="morning">朝</button>
-            <button class="tab-btn" data-time="afternoon">昼</button>
-            <button class="tab-btn" data-time="night">晩</button>
+    <div class="section-card" id="sec-skincare">
+        <div class="section-title">🧴 スキンケア・美容</div>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 15%;">時間</th>
+                    <th style="width: 35%;">内容 / アイテム</th>
+                    <th style="width: 35%;">目的 / メモ</th>
+                    <th style="width: 15%;">並び替え / 削除</th>
+                </tr>
+            </thead>
+            <tbody class="log-tbody"></tbody>
+        </table>
+        <div class="controls">
+            <button class="btn-main btn-add-row">＋ 行を追加</button>
         </div>
+    </div>
 
-        <div id="view-mode">
-            <div class="section-title">スキンケア</div>
-            <ul id="view-skincare" class="view-list"></ul>
-            
-            <div class="section-title">食事</div>
-            <ul id="view-meal" class="view-list"></ul>
-            
-            <div class="section-title">運動</div>
-            <ul id="view-exercise" class="view-list"></ul>
+    <div class="section-card" id="sec-meal">
+        <div class="section-title">🍳 食事・サプリ</div>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 15%;">時間</th>
+                    <th style="width: 35%;">食べたもの / メニュー</th>
+                    <th style="width: 35%;">量 / メモ</th>
+                    <th style="width: 15%;">並び替え / 削除</th>
+                </tr>
+            </thead>
+            <tbody class="log-tbody"></tbody>
+        </table>
+        <div class="controls">
+            <button class="btn-main btn-add-row">＋ 行を追加</button>
         </div>
+    </div>
 
-        <div id="edit-mode" class="hidden">
-            <form id="log-form">
-                <div class="section-title">スキンケア</div>
-                <table>
-                    <thead>
-                        <tr><th style="width: 80px;">並び替え</th><th style="width: 38%;">化粧品名</th><th style="width: 24%;">使用量</th><th style="width: 32%;">備考</th></tr>
-                    </thead>
-                    <tbody id="input-skincare-rows"></tbody>
-                </table>
-
-                <div class="section-title">食事</div>
-                <table>
-                    <thead>
-                        <tr><th style="width: 80px;">並び替え</th><th style="width: 38%;">メニュー</th><th style="width: 24%;">時間/量</th><th style="width: 32%;">備考</th></tr>
-                    </thead>
-                    <tbody id="input-meal-rows"></tbody>
-                </table>
-
-                <div class="section-title">運動</div>
-                <table>
-                    <thead>
-                        <tr><th style="width: 80px;">並び替え</th><th style="width: 38%;">種目</th><th style="width: 24%;">時間/回数</th><th style="width: 32%;">備考</th></tr>
-                    </thead>
-                    <tbody id="input-exercise-rows"></tbody>
-                </table>
-
-                <div class="form-actions">
-                    <button type="button" id="btn-cancel" class="btn-sub">キャンセル</button>
-                    <button type="submit" class="btn-main">保存する</button>
-                </div>
-            </form>
+    <div class="section-card" id="sec-exercise">
+        <div class="section-title">🏃 運動・その他</div>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 15%;">時間</th>
+                    <th style="width: 35%;">種目 / 行動</th>
+                    <th style="width: 35%;">強度 / メモ</th>
+                    <th style="width: 15%;">並び替え / 削除</th>
+                </tr>
+            </thead>
+            <tbody class="log-tbody"></tbody>
+        </table>
+        <div class="controls">
+            <button class="btn-main btn-add-row">＋ 行を追加</button>
         </div>
     </div>
 </div>
 
-<datalist id="suggest-skincare-col1"></datalist>
 <datalist id="suggest-skincare-col2"></datalist>
 <datalist id="suggest-skincare-col3"></datalist>
-<datalist id="suggest-meal-col1"></datalist>
 <datalist id="suggest-meal-col2"></datalist>
 <datalist id="suggest-meal-col3"></datalist>
-<datalist id="suggest-exercise-col1"></datalist>
 <datalist id="suggest-exercise-col2"></datalist>
 <datalist id="suggest-exercise-col3"></datalist>
 
 <script>
-    // --- 状態管理 ---
-    let currentDate = new Date();
-    let selectedDateStr = getFormattedDate(new Date());
-    let activeTime = 'morning'; 
-    
-    let logs = {};
+    // ご提示いただいた新しいウェブアプリURLに差し替え済み
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwZvHEkGI3Z3ZLoovwF4p6t9rbCtG-aMj3UERJF61-jP2dYawyuuecU1Eb60z9u9Wuy/exec";
+
+    // データの状態管理オブジェクト
+    let categories = [];
+    let schedules = {}; 
+    let doneRows = []; // 互換性維持のためのダミー配列
+
+    // サジェストワード候補
     let words = {
-        skincare: { col1: [], col2: [], col3: [] },
-        meal: { col1: [], col2: [], col3: [] },
-        exercise: { col1: [], col2: [], col3: [] }
+        skincare: { col2: [], col3: [] },
+        meal: { col2: [], col3: [] },
+        exercise: { col2: [], col3: [] }
     };
 
-    // --- 初期化 ---
+    // 初期化処理
     document.addEventListener('DOMContentLoaded', () => {
-        loadConfig();
-        
-        logs = JSON.parse(localStorage.getItem('lifeLogs')) || {};
-        words = JSON.parse(localStorage.getItem('lifeLogWords')) || {
-            skincare: { col1: [], col2: [], col3: [] },
-            meal: { col1: [], col2: [], col3: [] },
-            exercise: { col1: [], col2: [], col3: [] }
-        };
+        const dateInput = document.getElementById('current-date');
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.value = today;
 
-        updateDatalists();
-        renderCalendar();
-        selectDate(selectedDateStr);
+        // キャッシュ読み込み
+        const localSch = localStorage.getItem('ss_schedules2');
+        if (localSch) schedules = JSON.parse(localSch);
 
-        // 自動的にクラウド読み込みを開始
-        if(getConfig().gasUrl) loadFromSpreadsheet();
+        const localWords = localStorage.getItem('lifeLogWords');
+        if (localWords) words = JSON.parse(localWords);
 
-        document.getElementById('btn-prev').addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); });
-        document.getElementById('btn-next').addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); });
-        document.getElementById('btn-register').addEventListener('click', enterEditMode);
-        document.getElementById('btn-cancel').addEventListener('click', exitEditMode);
-        document.getElementById('log-form').addEventListener('submit', saveLog);
-
-        document.getElementById('btn-save-config').addEventListener('click', saveConfig);
+        // イベント設定
+        dateInput.addEventListener('change', renderAllSections);
         document.getElementById('btn-cloud-load').addEventListener('click', loadFromSpreadsheet);
 
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
-                activeTime = e.target.dataset.time;
-                
-                if (document.getElementById('edit-mode').classList.contains('hidden')) {
-                    renderViewMode(); 
-                } else {
-                    saveCurrentFormToMemory();
-                    refreshEditRows();
-                }
+        // 各セクションの「行を追加」ボタン設定
+        document.querySelectorAll('.section-card').forEach(card => {
+            const sectionKey = card.id.replace('sec-', '');
+            card.querySelector('.btn-add-row').addEventListener('click', () => {
+                addRow(sectionKey, '', '', '');
+                saveCurrentData();
             });
         });
+
+        // ページ起動時にスプレッドシートから最新データを自動読込
+        loadFromSpreadsheet();
     });
 
-    // --- 設定の制御 ---
-    function getConfig() {
-        return {
-            gasUrl: document.getElementById('cfg-gas-url').value.trim(),
-            spreadsheetId: document.getElementById('cfg-ss-id').value.trim()
-        };
-    }
-    function saveConfig() {
-        const cfg = getConfig();
-        localStorage.setItem('ll_cfg_gas_url', cfg.gasUrl);
-        localStorage.setItem('ll_cfg_ss_id', cfg.spreadsheetId);
-        alert('同期設定を保存しました。データを読み込みます。');
-        loadFromSpreadsheet();
-    }
-    function loadConfig() {
-        const savedUrl = localStorage.getItem('ll_cfg_gas_url');
-        const savedId = localStorage.getItem('ll_cfg_ss_id');
-        if (savedUrl) document.getElementById('cfg-gas-url').value = savedUrl;
-        if (savedId) document.getElementById('cfg-ss-id').value = savedId;
-    }
-
-    // --- スプレッドシートデータ読込 ---
+    // スプレッドシートからの読み込み同期処理(GET)
     async function loadFromSpreadsheet() {
-        const cfg = getConfig();
-        if(!cfg.gasUrl) {
-            document.getElementById('sync-status').innerText = "⚠️ 同期設定未完了";
-            return;
-        }
-        document.getElementById('sync-status').innerText = "🔄 クラウド読込中...";
-        
+        document.getElementById('sync-status').innerText = "🔄 スプレッドシートから最新データを同期中...";
         try {
-            const res = await fetch(cfg.gasUrl, {
-                method: "POST",
-                body: JSON.stringify({ 
-                    action: "load",
-                    spreadsheetId: cfg.spreadsheetId // IDを送信
-                })
-            });
+            const res = await fetch(GAS_API_URL);
             if(res.ok) {
-                const result = await res.json();
-                if (result.status === 'success') {
-                    const rData = result.data || {};
-                    logs = rData.logs || {};
-                    words = rData.words || {
-                        skincare: { col1: [], col2: [], col3: [] },
-                        meal: { col1: [], col2: [], col3: [] },
-                        exercise: { col1: [], col2: [], col3: [] }
-                    };
-                    
-                    localStorage.setItem('lifeLogs', JSON.stringify(logs));
-                    localStorage.setItem('lifeLogWords', JSON.stringify(words));
-                    
-                    updateDatalists();
-                    renderCalendar();
-                    renderViewMode();
-                    document.getElementById('sync-status').innerText = "✅ クラウド同期成功";
-                } else {
-                    document.getElementById('sync-status').innerText = "❌ 読込エラー: " + result.message;
-                }
-            } else {
-                document.getElementById('sync-status').innerText = "❌ 接続エラー";
+                const data = await res.json();
+                categories = data.categories || [];
+                schedules = data.schedules || {};
+                if (data.doneRows) doneRows = data.doneRows;
+                
+                localStorage.setItem('ss_categories2', JSON.stringify(categories));
+                localStorage.setItem('ss_schedules2', JSON.stringify(schedules));
+                
+                renderAllSections();
+                document.getElementById('sync-status').innerText = "✅ スプレッドシート連携稼働中 (Life Log同期モード)";
             }
         } catch(e) {
-            console.error(e);
-            document.getElementById('sync-status').innerText = "❌ 通信失敗";
+            document.getElementById('sync-status').innerText = "❌ 読み込み同期エラー";
+            renderAllSections();
         }
     }
 
-    // --- スプレッドシートデータ書込 ---
+    // スプレッドシートへの書き込み同期処理(POST)
     async function saveToSpreadsheet() {
-        const cfg = getConfig();
-        if(!cfg.gasUrl) return;
-
-        document.getElementById('sync-status').innerText = "💾 クラウドに保存中...";
-        const dataPayload = { logs: logs, words: words };
-
+        document.getElementById('sync-status').innerText = "💾 スプレッドシートに保存中...";
         try {
-            const res = await fetch(cfg.gasUrl, {
-                method: "POST",
-                body: JSON.stringify({
-                    action: "save",
-                    spreadsheetId: cfg.spreadsheetId, // IDを送信
-                    data: dataPayload
-                })
+            await fetch(GAS_API_URL, { 
+                method: "POST", 
+                body: JSON.stringify({ categories, schedules, doneRows }) 
             });
-            if(res.ok) {
-                const result = await res.json();
-                if (result.status === 'success') {
-                    document.getElementById('sync-status').innerText = "✅ クラウド保存完了！";
-                } else {
-                    document.getElementById('sync-status').innerText = "❌ 保存エラー: " + result.message;
-                }
-            } else {
-                document.getElementById('sync-status').innerText = "❌ 保存失敗";
-            }
+            document.getElementById('sync-status').innerText = "✅ 全端末へ変更データをクラウド保存しました！";
         } catch(e) {
-            console.error(e);
-            document.getElementById('sync-status').innerText = "❌ 保存通信失敗";
+            document.getElementById('sync-status').innerText = "❌ クラウド保存エラー";
         }
     }
 
-    function getFormattedDate(date) {
-        return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
-    }
+    // 画面の全セクションを描画
+    function renderAllSections() {
+        updateDatalists();
+        const dateStr = document.getElementById('current-date').value;
+        const sections = ['skincare', 'meal', 'exercise'];
 
-    // --- カレンダー描画 ---
-    function renderCalendar() {
-        const year = currentDate.getFullYear();
-        const month = currentDate.getMonth();
-        document.getElementById('calendar-month').innerText = `${year}年 ${month + 1}月`;
+        sections.forEach(sec => {
+            const tbody = document.querySelector(`#sec-${sec} .log-tbody`);
+            tbody.innerHTML = '';
 
-        const grid = document.getElementById('calendar-grid');
-        grid.innerHTML = '';
+            // スプレッドシート上の構造に合わせ、"日付_セクション名" をキーとしてデータを取得
+            const dataKey = `${dateStr}_${sec}`;
+            const rowsData = schedules[dataKey] || [];
 
-        const weeks = ['日', '月', '火', '水', '木', '金', '土'];
-        weeks.forEach(w => {
-            const el = document.createElement('div');
-            el.className = 'day-name';
-            el.innerText = w;
-            grid.appendChild(el);
-        });
-
-        const firstDay = new Date(year, month, 1).getDay();
-        const numDays = new Date(year, month + 1, 0).getDate();
-
-        for (let i = 0; i < firstDay; i++) grid.appendChild(document.createElement('div'));
-
-        for (let date = 1; date <= numDays; date++) {
-            const dayEl = document.createElement('div');
-            dayEl.className = 'day';
-            dayEl.innerText = date;
-
-            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
-            dayEl.dataset.date = dateStr;
-
-            if (logs[dateStr] && (
-                hasTimeData(logs[dateStr].morning) || 
-                hasTimeData(logs[dateStr].afternoon) || 
-                hasTimeData(logs[dateStr].night)
-            )) {
-                dayEl.classList.add('has-data');
+            if (rowsData.length === 0) {
+                // データがない場合は初期状態として空行を1つ生成
+                addRow(sec, '', '', '');
+            } else {
+                rowsData.forEach(item => {
+                    addRow(sec, item.col1 || '', item.col2 || '', item.col3 || '');
+                });
             }
-
-            if (dateStr === selectedDateStr) dayEl.classList.add('selected');
-
-            dayEl.addEventListener('click', () => selectDate(dateStr));
-            grid.appendChild(dayEl);
-        }
-    }
-
-    function hasTimeData(timeData) {
-        if (!timeData) return false;
-        return (timeData.skincare?.length > 0 || timeData.meal?.length > 0 || timeData.exercise?.length > 0);
-    }
-
-    function selectDate(dateStr) {
-        selectedDateStr = dateStr;
-        document.querySelectorAll('.day').forEach(el => el.classList.remove('selected'));
-        const activeDay = document.querySelector(`.day[data-date="${dateStr}"]`);
-        if (activeDay) activeDay.classList.add('selected');
-
-        const d = new Date(dateStr);
-        document.getElementById('selected-date-label').innerText = `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日の記録`;
-
-        exitEditMode();
-        renderViewMode();
-    }
-
-    function renderViewMode() {
-        const dayData = logs[selectedDateStr] || {};
-        const timeData = dayData[activeTime] || { skincare: [], meal: [], exercise: [] };
-
-        renderSectionView('view-skincare', timeData.skincare);
-        renderSectionView('view-meal', timeData.meal);
-        renderSectionView('view-exercise', timeData.exercise);
-    }
-
-    function renderSectionView(elementId, dataArray) {
-        const ul = document.getElementById(elementId);
-        ul.innerHTML = '';
-        if (!dataArray || dataArray.length === 0) {
-            ul.innerHTML = '<span class="no-data">記載なし</span>';
-            return;
-        }
-        dataArray.forEach(item => {
-            const li = document.createElement('li');
-            const parts = [item.col1, item.col2, item.col3].filter(p => p && p.trim() !== '');
-            li.innerText = parts.join(' ｜ ');
-            ul.appendChild(li);
         });
     }
 
-    function enterEditMode() {
-        document.getElementById('view-mode').classList.add('hidden');
-        document.getElementById('edit-mode').classList.remove('hidden');
-        document.getElementById('btn-register').classList.add('hidden');
-        refreshEditRows();
-    }
-
-    function exitEditMode() {
-        document.getElementById('view-mode').classList.remove('hidden');
-        document.getElementById('edit-mode').classList.add('hidden');
-        document.getElementById('btn-register').classList.remove('hidden');
-    }
-
-    function refreshEditRows() {
-        if (!logs[selectedDateStr]) logs[selectedDateStr] = {};
-        const timeData = logs[selectedDateStr][activeTime] || { skincare: [], meal: [], exercise: [] };
-
-        setupInputRows('input-skincare-rows', timeData.skincare, 'skincare');
-        setupInputRows('input-meal-rows', timeData.meal, 'meal');
-        setupInputRows('input-exercise-rows', timeData.exercise, 'exercise');
-    }
-
-    function setupInputRows(tbodyId, existingData, sectionKey) {
-        const tbody = document.getElementById(tbodyId);
-        tbody.innerHTML = '';
-
-        if (existingData && existingData.length > 0) {
-            existingData.forEach(data => addInputRow(tbody, sectionKey, data));
-        }
-        addInputRow(tbody, sectionKey); 
-    }
-
-    function addInputRow(tbody, sectionKey, data = { col1: '', col2: '', col3: '' }) {
+    // テーブルに行を追加する関数
+    function addRow(sectionKey, c1, c2, c3) {
+        const tbody = document.querySelector(`#sec-${sectionKey} .log-tbody`);
         const tr = document.createElement('tr');
-        tr.className = 'input-row';
+
         tr.innerHTML = `
+            <td><input type="time" class="input-cell col1" value="${c1}"></td>
+            <td><input type="text" class="input-cell col2" value="${c2}" list="suggest-${sectionKey}-col2"></td>
+            <td><input type="text" class="input-cell col3" value="${c3}" list="suggest-${sectionKey}-col3"></td>
             <td>
-                <div class="move-btns">
-                    <button type="button" class="btn-move move-up">▲</button>
-                    <button type="button" class="btn-move move-down">▼</button>
-                </div>
+                <button class="btn-action btn-up">▲</button>
+                <button class="btn-action btn-down">▼</button>
+                <button class="btn-action btn-delete">削除</button>
             </td>
-            <td><input type="text" class="col1" value="${data.col1}" placeholder="入力..." list="suggest-${sectionKey}-col1"></td>
-            <td><input type="text" class="col2" value="${data.col2}" placeholder="入力..." list="suggest-${sectionKey}-col2"></td>
-            <td><input type="text" class="col3" value="${data.col3}" placeholder="入力..." list="suggest-${sectionKey}-col3"></td>
         `;
 
-        tr.querySelector('.move-up').addEventListener('click', () => {
-            const prev = tr.previousElementSibling;
-            if (prev) tbody.insertBefore(tr, prev);
-        });
-
-        tr.querySelector('.move-down').addEventListener('click', () => {
-            const next = tr.nextElementSibling;
-            if (next) tbody.insertBefore(next, tr);
-        });
-
-        const inputs = tr.querySelectorAll('input');
-        inputs.forEach(input => {
-            input.addEventListener('input', () => {
-                if (tr === tbody.lastElementChild && (inputs[0].value || inputs[1].value || inputs[2].value)) {
-                    addInputRow(tbody, sectionKey);
-                }
+        // 文字が変更されたら即座に同期・保存
+        tr.querySelectorAll('.input-cell').forEach(input => {
+            input.addEventListener('change', () => {
+                saveCurrentData();
             });
+        });
+
+        // ボタン操作設定
+        tr.querySelector('.btn-up').addEventListener('click', () => {
+            if (tr.previousElementSibling) {
+                tbody.insertBefore(tr, tr.previousElementSibling);
+                saveCurrentData();
+            }
+        });
+        tr.querySelector('.btn-down').addEventListener('click', () => {
+            if (tr.nextElementSibling) {
+                tbody.insertBefore(tr.nextElementSibling, tr);
+                saveCurrentData();
+            }
+        });
+        tr.querySelector('.btn-delete').addEventListener('click', () => {
+            if (confirm('この行を削除しますか？')) {
+                tr.remove();
+                saveCurrentData();
+            }
         });
 
         tbody.appendChild(tr);
     }
 
-    function saveCurrentFormToMemory() {
-        if (!logs[selectedDateStr]) logs[selectedDateStr] = {};
-        logs[selectedDateStr][activeTime] = {
-            skincare: collectRowData('input-skincare-rows'),
-            meal: collectRowData('input-meal-rows'),
-            exercise: collectRowData('input-exercise-rows')
-        };
-    }
+    // 入力データをすべて集計してスプシに送信
+    function saveCurrentData() {
+        const dateStr = document.getElementById('current-date').value;
+        const sections = ['skincare', 'meal', 'exercise'];
 
-    function saveLog(e) {
-        e.preventDefault();
+        sections.forEach(sec => {
+            const dataKey = `${dateStr}_${sec}`;
+            const grabbed = grabTableData(sec);
+            
+            if (grabbed.length === 0) {
+                delete schedules[dataKey];
+            } else {
+                schedules[dataKey] = grabbed;
+                learnWords(sec, grabbed);
+            }
+        });
 
-        saveCurrentFormToMemory(); 
-        localStorage.setItem('lifeLogs', JSON.stringify(logs));
-
-        const timeData = logs[selectedDateStr][activeTime];
-        learnWords('skincare', timeData.skincare);
-        learnWords('meal', timeData.meal);
-        learnWords('exercise', timeData.exercise);
-
+        localStorage.setItem('ss_schedules2', JSON.stringify(schedules));
         updateDatalists();
-        exitEditMode();
-        renderViewMode();
-        renderCalendar();
         
+        // 新しいGASに向けてデータを送信
         saveToSpreadsheet();
     }
 
-    function collectRowData(tbodyId) {
-        const rows = document.querySelectorAll(`#${tbodyId} .input-row`);
+    // テーブル要素からデータを抽出
+    function grabTableData(sectionKey) {
         const data = [];
+        const rows = document.querySelectorAll(`#sec-${sectionKey} .log-tbody tr`);
         rows.forEach(row => {
             const col1 = row.querySelector('.col1').value.trim();
             const col2 = row.querySelector('.col2').value.trim();
@@ -653,19 +427,20 @@
         return data;
     }
 
+    // サジェストワードの学習
     function learnWords(sectionKey, dataArray) {
         dataArray.forEach(item => {
-            if (item.col1 && !words[sectionKey].col1.includes(item.col1)) words[sectionKey].col1.push(item.col1);
             if (item.col2 && !words[sectionKey].col2.includes(item.col2)) words[sectionKey].col2.push(item.col2);
             if (item.col3 && !words[sectionKey].col3.includes(item.col3)) words[sectionKey].col3.push(item.col3);
         });
         localStorage.setItem('lifeLogWords', JSON.stringify(words));
     }
 
+    // サジェスト表示の更新
     function updateDatalists() {
         const sections = ['skincare', 'meal', 'exercise'];
         sections.forEach(sec => {
-            for (let i = 1; i <= 3; i++) {
+            for (let i = 2; i <= 3; i++) {
                 const datalist = document.getElementById(`suggest-${sec}-col${i}`);
                 if (!datalist) continue;
                 datalist.innerHTML = '';
@@ -679,6 +454,5 @@
         });
     }
 </script>
-
 </body>
 </html>
