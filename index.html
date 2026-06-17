@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Life Log (スプレッドシート同期・行並び替え機能付き)</title>
+    <title>My Life Log (データ救出・スプシ同期版)</title>
     <style>
         :root {
             --primary-color: #6b8e23;
@@ -235,13 +235,13 @@
 <datalist id="suggest-exercise-col3"></datalist>
 
 <script>
-    // ご提示いただいた新しいウェブアプリURLに差し替え済み
+    // ウェブアプリURL
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwZvHEkGI3Z3ZLoovwF4p6t9rbCtG-aMj3UERJF61-jP2dYawyuuecU1Eb60z9u9Wuy/exec";
 
     // データの状態管理オブジェクト
     let categories = [];
     let schedules = {}; 
-    let doneRows = []; // 互換性維持のためのダミー配列
+    let doneRows = [];
 
     // サジェストワード候補
     let words = {
@@ -256,7 +256,10 @@
         const today = new Date().toISOString().split('T')[0];
         dateInput.value = today;
 
-        // キャッシュ読み込み
+        // 【最優先】古い過去データがあるか探して、新しい形に変換・復元する（データ引っ越し機能）
+        migrateOldData();
+
+        // 復元またはキャッシュの読み込み
         const localSch = localStorage.getItem('ss_schedules2');
         if (localSch) schedules = JSON.parse(localSch);
 
@@ -276,9 +279,54 @@
             });
         });
 
-        // ページ起動時にスプレッドシートから最新データを自動読込
+        // スプレッドシートから最新データを読込
         loadFromSpreadsheet();
     });
+
+    /**
+     * 💡 過去の古いデータを新しい同期の形に自動コンバートする関数
+     */
+    function migrateOldData() {
+        const oldDataStr = localStorage.getItem('lifeLogData');
+        if (!oldDataStr) return; // 古いデータがなければ何もしない
+
+        try {
+            const oldData = JSON.parse(oldDataStr); // 過去データを解析
+            let currentSchedules = {};
+            
+            // 既に新しいキャッシュがあれば読み込んでおく
+            const localSch = localStorage.getItem('ss_schedules2');
+            if (localSch) currentSchedules = JSON.parse(localSch);
+
+            let migratedCount = 0;
+
+            // 古いデータ形式: { "2026-06-17": { skincare: [...], meal: [...] } }
+            // 新しいデータ形式: { "2026-06-17_skincare": [...] } への変換
+            for (const dateStr in oldData) {
+                const dayData = oldData[dateStr];
+                for (const secKey in dayData) {
+                    const newKey = `${dateStr}_${secKey}`;
+                    // まだ新しいデータ側に存在しない日付データのみ移行する（上書き防止）
+                    if (!currentSchedules[newKey] && dayData[secKey] && dayData[secKey].length > 0) {
+                        currentSchedules[newKey] = dayData[secKey];
+                        migratedCount++;
+                    }
+                }
+            }
+
+            if (migratedCount > 0) {
+                // 新しい形式で保存し直す
+                schedules = currentSchedules;
+                localStorage.setItem('ss_schedules2', JSON.stringify(schedules));
+                // スプシ側にもすぐにバックアップ送信
+                setTimeout(() => {
+                    saveToSpreadsheet();
+                }, 1000);
+            }
+        } catch (e) {
+            console.error("過去データの移行中にエラーが発生しました:", e);
+        }
+    }
 
     // スプレッドシートからの読み込み同期処理(GET)
     async function loadFromSpreadsheet() {
@@ -287,15 +335,19 @@
             const res = await fetch(GAS_API_URL);
             if(res.ok) {
                 const data = await res.json();
+                
+                // スプシ側が空欄でなくデータがある場合のみマージ・更新
+                if (data.schedules && Object.keys(data.schedules).length > 0) {
+                    schedules = data.schedules;
+                }
                 categories = data.categories || [];
-                schedules = data.schedules || {};
                 if (data.doneRows) doneRows = data.doneRows;
                 
                 localStorage.setItem('ss_categories2', JSON.stringify(categories));
                 localStorage.setItem('ss_schedules2', JSON.stringify(schedules));
                 
                 renderAllSections();
-                document.getElementById('sync-status').innerText = "✅ スプレッドシート連携稼働中 (Life Log同期モード)";
+                document.getElementById('sync-status').innerText = "✅ スプレッドシート連携稼働中 (データ復元完了)";
             }
         } catch(e) {
             document.getElementById('sync-status').innerText = "❌ 読み込み同期エラー";
@@ -327,12 +379,10 @@
             const tbody = document.querySelector(`#sec-${sec} .log-tbody`);
             tbody.innerHTML = '';
 
-            // スプレッドシート上の構造に合わせ、"日付_セクション名" をキーとしてデータを取得
             const dataKey = `${dateStr}_${sec}`;
             const rowsData = schedules[dataKey] || [];
 
             if (rowsData.length === 0) {
-                // データがない場合は初期状態として空行を1つ生成
                 addRow(sec, '', '', '');
             } else {
                 rowsData.forEach(item => {
@@ -358,14 +408,12 @@
             </td>
         `;
 
-        // 文字が変更されたら即座に同期・保存
         tr.querySelectorAll('.input-cell').forEach(input => {
             input.addEventListener('change', () => {
                 saveCurrentData();
             });
         });
 
-        // ボタン操作設定
         tr.querySelector('.btn-up').addEventListener('click', () => {
             if (tr.previousElementSibling) {
                 tbody.insertBefore(tr, tr.previousElementSibling);
@@ -407,8 +455,6 @@
 
         localStorage.setItem('ss_schedules2', JSON.stringify(schedules));
         updateDatalists();
-        
-        // 新しいGASに向けてデータを送信
         saveToSpreadsheet();
     }
 
