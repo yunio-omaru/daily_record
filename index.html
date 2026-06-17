@@ -15,7 +15,7 @@
             --morning-color: #ff9800;
             --noon-color: #2196f3;
             --night-color: #9c27b0;
-            --recipe-color: #ff6b6b; /* レシピボタン用のアクセントカラー  */
+            --recipe-color: #ff6b6b;
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -26,13 +26,11 @@
             -webkit-tap-highlight-color: transparent;
         }
         .container {
-            max-width: 500px; /* スマホで見やすいジャストサイズ */
+            max-width: 500px;
             margin: 0 auto;
             padding: 15px;
             box-sizing: border-box;
         }
-        
-        /* 共通ヘッダー・ステータス */
         header {
             display: flex;
             justify-content: space-between;
@@ -45,7 +43,6 @@
         }
         h1 { font-size: 1.3rem; color: var(--primary-color); margin: 0; }
         
-        /* タイトル下のサブヘッダー（レシピリンク等） */
         .sub-header-bar {
             background: var(--card-bg);
             padding: 10px 15px;
@@ -99,11 +96,10 @@
             text-align: center;
         }
 
-        /* 画面切り替え用の制御 */
         .page { display: none; }
         .page.active { display: block; }
 
-        /* --- 1. カレンダー画面用スタイル --- */
+        /* カレンダー */
         .calendar-header {
             display: flex;
             justify-content: space-between;
@@ -131,7 +127,6 @@
         .calendar-table td.empty { cursor: default; }
         .calendar-table td.empty:active { background: none; }
         
-        /* 記録がある日のドット(点) */
         .dot {
             position: absolute;
             bottom: 4px;
@@ -142,14 +137,13 @@
             background-color: var(--primary-color);
             border-radius: 50%;
         }
-        /* 今日 */
         .calendar-table td.today {
             background-color: var(--primary-light);
             font-weight: bold;
             border-radius: 8px;
         }
 
-        /* --- 2. 詳細表示画面用スタイル --- */
+        /* 詳細画面 */
         .detail-date-title {
             font-size: 1.3rem;
             font-weight: bold;
@@ -182,7 +176,6 @@
             margin: 10px 0 5px 0;
             font-weight: bold;
         }
-        /* スマホ用縦型カードレイアウト */
         .item-card {
             background: #f9fbf7;
             border-left: 4px solid var(--primary-color);
@@ -197,7 +190,7 @@
         .item-card-memo { font-size: 0.85rem; color: #444; margin-top: 4px; line-height: 1.3; }
         .no-data-text { color: #aaa; font-size: 0.85rem; font-style: italic; padding: 5px 0; }
 
-        /* --- 3. 編集画面用スタイル --- */
+        /* 編集画面 */
         .tab-container { display: flex; gap: 8px; margin-bottom: 15px; }
         .tab-btn { flex: 1; padding: 10px; background-color: #e0e0e0; color: #555; border-radius: 8px; }
         .tab-btn.active { background-color: var(--primary-color); color: white; }
@@ -216,6 +209,7 @@
 <div class="container">
     <div id="sync-status" class="sync-status-bar">🔄 スプレッドシートからデータを取得中...</div>
 
+    <!-- ================= 1. メイン（カレンダー）画面 ================= -->
     <div id="page-calendar" class="page active">
         <header>
             <h1>🌿 My Life Log</h1>
@@ -244,6 +238,7 @@
         </table>
     </div>
 
+    <!-- ================= 2. 詳細表示画面 ================= -->
     <div id="page-detail" class="page">
         <header>
             <button id="btn-detail-back" class="btn-secondary">◀ 戻る</button>
@@ -251,24 +246,28 @@
             <button id="btn-go-edit" class="btn-main">＋ 編集</button>
         </header>
         
-        <div id="detail-date-display" class="detail-date-title">2026年06月15日</div>
+        <div id="detail-date-display" class="detail-date-title"></div>
 
+        <!-- 朝ブロック -->
         <div class="timezone-block">
             <div class="timezone-header tz-morning">☀️ 朝</div>
             <div id="detail-morning-content"></div>
         </div>
 
+        <!-- 昼ブロック -->
         <div class="timezone-block">
             <div class="timezone-header tz-noon">🌤️ 昼</div>
             <div id="detail-noon-content"></div>
         </div>
 
+        <!-- 夜ブロック -->
         <div class="timezone-block">
             <div class="timezone-header tz-night">🌙 晩</div>
             <div id="detail-night-content"></div>
         </div>
     </div>
 
+    <!-- ================= 3. 編集画面 ================= -->
     <div id="page-edit" class="page">
         <header>
             <button id="btn-edit-back" class="btn-secondary">◀ 戻る</button>
@@ -284,6 +283,7 @@
             <button class="tab-btn" data-time="night">🌙 晩</button>
         </div>
 
+        <!-- スキンケア -->
         <div class="section-card" id="sec-skincare">
             <div class="section-title">🧴 スキンケア・美容</div>
             <table class="edit-table">
@@ -293,6 +293,7 @@
             <button class="btn-main btn-add-row">＋ 行を追加</button>
         </div>
 
+        <!-- 食事 -->
         <div class="section-card" id="sec-meal">
             <div class="section-title">🍳 食事・サプリ</div>
             <table class="edit-table">
@@ -302,6 +303,7 @@
             <button class="btn-main btn-add-row">＋ 行を追加</button>
         </div>
 
+        <!-- 運動 -->
         <div class="section-card" id="sec-exercise">
             <div class="section-title">🏃 運動・その他</div>
             <table class="edit-table">
@@ -316,38 +318,40 @@
 <div id="datalist-container"></div>
 
 <script>
+    // ⚠️ご自身のGASのウェブアプリURLに書き換えてください！
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwZvHEkGI3Z3ZLoovwF4p6t9rbCtG-aMj3UERJF61-jP2dYawyuuecU1Eb60z9u9Wuy/exec";
 
-    // 内部データ管理
     let schedules = {}; 
     let categories = []; let doneRows = [];
     let selectedDateStr = ""; 
     let activeTimezone = "morning"; 
     let currentCalendarDate = new Date(); 
 
-    // 初期化用過去ログデータ
+    // 🧹 初期化用過去ログデータをゴリさんのスキンケアだけに綺麗に掃除
     const PAST_JSON_LOGS = {
-        "2026-06-15_morning_skincare": [{"col1":"A･TRUE：オリジン ピュア バランシング クレンジングオイル","col2":"ポンプ：2プッシュ","col3":"手に軽く広げたら頬から全顔優しくなじませる＞少し待って乳化"},{"col1":"松山油脂：アミノ酸浸透水","col2":"ポンプ：4プッシュ","col3":"両頬、おでこ、鼻 軽く手で押し塗り"},{"col1":"スキンフード：キャロットトナーパッド","col2":"1枚","col3":"優しく全顔ふき取り＞2枚に割いて両頬2～5分パック"},{"col1":"Cosrx：RXザ・6ペプチドスキンブースターセラム","col2":"10円玉大","col3":"両手を軽くすり合わせ、頬から全顔に押し塗り"},{"col1":"イズエンツリー：ヒアルロン酸トナー","col2":"10円玉大","col3":"両手を軽くすり合わせ、頬から全顔に押し塗り"},{"col1":"Cosrx：RXザ・アルファアルブチン２","col2":"スポイト：1~1.5","col3":"手を皿にして指につけて、それぞれの頬、残りを全顔に押し塗り"},{"col1":"成分エディター：グリーントマトNMNポアリフティングアンプル","col2":"スポイト：1","col3":"手を皿にして指につけて、それぞれの頬、残りを全顔に押し塗り"},{"col1":"DRX：AZAクリア","col2":"米粒2粒x2","col3":"両頬、おでこに少量ずつ点置き後、全顔になじむよう押し塗り(目の上など乾燥しやすいところは避ける)"},{"col1":"ラ ロッシュ ポゼ：シカプラスト リペアクリーム B5+","col2":"米粒2粒x2","col3":"両頬、おでこに少量ずつ点置き後、全顔になじむよう押し塗り(目の上など乾燥しやすいところは避ける)"},{"col1":"皮膚科：ステロイドクリーム","col2":"米粒3粒","col3":"赤みやかさかさ、ニキビ以外のぽつぽつ部分に点置き押し塗り"},{"col1":"マミー：ＵＶアクアミルク","col2":"100円玉大(立方)","col3":""}],
-        "2026-06-14_night_skincare": [{"col1":"牛乳石鹸：青箱","col2":"","col3":"全身洗った後、最後に優しく洗顔"},{"col1":"ビオレ：ビオレザフェイス(黄)","col2":"1プッシュ","col3":"頬、鼻中心に全顔に優しく押し広げる＞30s～1min待ってすすぎ"},{"col1":"松山油脂：アミノ酸浸透水","col2":"","col3":""},{"col1":"スキンフード：キャロットトナーパッド","col2":"","col3":""},{"col1":"Cosrx：RXザ・6ペプチドスキンブースターセラム","col2":"","col3":""},{"col1":"Cosrx：RXザ・アルファアルブチン２","col2":"","col3":""},{"col1":"成分エディター：グリーントマトNMNポアリフティングアンプル","col2":"","col3":""},{"col1":"DRX：AZAクリア","col2":"","col3":""},{"col1":"ラ ロッシュ ポゼ：シカプラスト リペアクリーム B5+","col2":"","col3":""},{"col1":"皮膚科：ステロイドクリーム","col2":"","col3":""}],
-        "2026-06-14_night_exercise": [{"col1":"ランニング","col2":"","col3":"家から大橋駅"}]
+        "2026-06-15_morning_skincare": [{"col1":"A･TRUE：オリジン ピュア バランシング クレンジングオイル","col2":"ポンプ2プッシュ","col3":"手に軽く広げたら頬から全顔優しくなじませる＞少し待って乳化"}],
+        "2026-06-15_noon_skincare": [{"col1":"A･TRUE：オリジン ピュア バランシング クレンジングオイル","col2":"ポンプ2プッシュ","col3":"手に軽く広げたら頬から全顔優しくなじませる＞少し待って乳化"}],
+        "2026-06-15_night_skincare": [{"col1":"A･TRUE：オリジン ピュア バランシング クレンジングオイル","col2":"ポンプ2プッシュ","col3":"手に軽く広げたら頬から全顔優しくなじませる＞少し待って乳化"}]
     };
 
+    // 🧹 サジェストの単語リストからも余計な「迎撃」などを完全消去
     let words = {
         skincare: {
-            col1: ["A･TRUE：オリジン ピュア バランシング クレンジングオイル","松山油脂：アミノ酸浸透水","スキンフード：キャロットトナーパッド","Cosrx：RXザ・6ペプチドスキンブースターセラム","イズエンツリー：ヒアルロン酸トナー","Cosrx：RXザ・アルファアルブチン２","成分エディター：グリーントマトNMNポアリフティングアンプル","DRX：AZAクリア","ラ ロッシュ ポゼ：シカプラスト リペアクリーム B5+ ","皮膚科：ステロイドクリーム","マミー：ＵＶアクアミルク","牛乳石鹸：青箱","ビオレ：ビオレザフェイス(黄)"],
-            col2: ["ポンプ：2プッシュ","ポンプ：4プッシュ","1枚","10円玉大","スポイト：1~1.5","スポイト：1","米粒2粒x2","米粒3粒","100円玉大(立方)","1プッシュ"],
-            col3: ["手に軽く広げたら頬から全顔優しくなじませる","手に軽く広げたら頬から全顔優しくなじませる＞少し待って乳化","両頬、おでこ、鼻 軽く手で押し塗り","優しく全顔ふき取り＞2枚に割いて両頬2～5分パック","両手を軽くすり合わせ、頬から全顔に押し塗り","手を皿にして指につけて、それぞれの頬、残りを全顔に押し塗り","両頬、おでこに少量ずつ点置き後、全顔になじむよう押し塗り(目の上など乾燥しやすいところは避ける)","赤みやかさかさ、ニキビ以外のぽつぽつ部分に点置き押し塗り","全身洗った後、優しく洗顔","頬、鼻中心に全顔に優しく押し広げる＞30s～1min待ってすすぎ","全身洗った後、最後に優しく洗顔"]
-        }, meal: {col1:[], col2:[], col3:[]}, exercise: {col1:["ランニング"], col2:[], col3:["家から大橋駅"]}
+            col1: ["A･TRUE：オリジン ピュア バランシング クレンジングオイル"],
+            col2: ["ポンプ2プッシュ"],
+            col3: ["手に軽く広げたら頬から全顔優しくなじませる＞少し待って乳化"]
+        }, 
+        meal: {col1:[], col2:[], col3:[]}, 
+        exercise: {col1:[], col2:[], col3:[]}
     };
 
     document.addEventListener('DOMContentLoaded', () => {
-        schedules = Object.assign({}, PAST_JSON_LOGS);
-        const localSch = localStorage.getItem('ss_schedules2');
-        if (localSch) schedules = Object.assign(schedules, JSON.parse(localSch));
-        const localWords = localStorage.getItem('lifeLogWords');
-        if (localWords) words = JSON.parse(localWords);
+        // ローカルに古いゴミデータが残っていたら一旦消す処理
+        localStorage.removeItem('ss_schedules2');
+        localStorage.removeItem('lifeLogWords');
 
-        // イベント登録
+        schedules = Object.assign({}, PAST_JSON_LOGS);
+
         document.getElementById('btn-refresh').addEventListener('click', loadFromSpreadsheet);
         document.getElementById('btn-prev-month').addEventListener('click', () => changeMonth(-1));
         document.getElementById('btn-next-month').addEventListener('click', () => changeMonth(1));
@@ -356,7 +360,6 @@
         document.getElementById('btn-go-edit').addEventListener('click', openEditPage);
         document.getElementById('btn-edit-save').addEventListener('click', saveEditData);
 
-        // 編集画面の時間帯タブ
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -366,7 +369,6 @@
             });
         });
 
-        // 編集の追加ボタン
         document.querySelectorAll('.btn-add-row').forEach(btn => {
             const sec = btn.closest('.section-card').id.replace('sec-', '');
             btn.addEventListener('click', () => addEditRow(sec, '', '', ''));
@@ -383,7 +385,6 @@
         if(pageId === 'page-calendar') renderCalendar();
     }
 
-    // --- カレンダー処理 ---
     function renderCalendar() {
         const year = currentCalendarDate.getFullYear();
         const month = currentCalendarDate.getMonth();
@@ -451,7 +452,6 @@
         return false;
     }
 
-    // --- 詳細表示処理 ---
     function openDetailPage(dateStr) {
         selectedDateStr = dateStr;
         const parts = dateStr.split('-');
@@ -500,7 +500,6 @@
         }
     }
 
-    // --- 編集画面の処理 ---
     function openEditPage() {
         document.getElementById('edit-date-label').innerText = `対象日: ${selectedDateStr}`;
         activeTimezone = 'morning';
@@ -574,18 +573,18 @@
         saveToSpreadsheet();
     }
 
-    // --- 通信処理 ---
     async function loadFromSpreadsheet() {
-        document.getElementById('sync-status').innerText = "🔄 クラウンドからデータを同期中...";
+        document.getElementById('sync-status').innerText = "🔄 スプレッドシートからデータを取得中...";
         try {
             const res = await fetch(GAS_API_URL);
             if(res.ok) {
                 const data = await res.json();
+                // スプシ側にデータがあればマージするが、真っ白なら初期値を使用
                 if (data.schedules && Object.keys(data.schedules).length > 0) {
                     schedules = Object.assign({}, schedules, data.schedules);
                 }
-                categories = data.categories || [];
-                localStorage.setItem('ss_schedules2', JSON.stringify(schedules));
+                if (data.words) words = Object.assign({}, words, data.words);
+                
                 renderCalendar();
                 if (document.getElementById('page-detail').classList.contains('active')) {
                     openDetailPage(selectedDateStr);
@@ -602,7 +601,7 @@
         try {
             await fetch(GAS_API_URL, { 
                 method: "POST", 
-                body: JSON.stringify({ categories, schedules, doneRows }) 
+                body: JSON.stringify({ categories, schedules, doneRows, words }) 
             });
             document.getElementById('sync-status').innerText = "✅ スプレッドシートに保存しました！";
         } catch(e) {
@@ -610,7 +609,6 @@
         }
     }
 
-    // --- サジェスト用HTML作成 ---
     function buildDatalists() {
         const container = document.getElementById('datalist-container');
         container.innerHTML = '';
