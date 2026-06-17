@@ -19,185 +19,46 @@
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 0;
-            -webkit-tap-highlight-color: transparent;
+            background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 0; -webkit-tap-highlight-color: transparent;
         }
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
-            padding: 15px;
-            box-sizing: border-box;
-        }
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--card-bg);
-            padding: 12px 15px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            margin-bottom: 10px;
-        }
+        .container { max-width: 500px; margin: 0 auto; padding: 15px; box-sizing: border-box; }
+        header { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 12px 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 10px; }
         h1 { font-size: 1.3rem; color: var(--primary-color); margin: 0; }
-        
-        .sub-header-bar {
-            background: var(--card-bg);
-            padding: 10px 15px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: center;
-        }
-        .btn-recipe-link {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            width: 100%;
-            background-color: var(--recipe-color);
-            color: white;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 0.9rem;
-            padding: 10px;
-            border-radius: 8px;
-            text-align: center;
-            box-shadow: 0 2px 4px rgba(255, 107, 107, 0.2);
-            transition: opacity 0.2s;
-        }
-        .btn-recipe-link:active { opacity: 0.85; }
-
-        button {
-            cursor: pointer;
-            border: none;
-            border-radius: 8px;
-            padding: 8px 14px;
-            font-weight: bold;
-            font-size: 0.9rem;
-            transition: background 0.2s;
-        }
+        .sub-header-bar { background: var(--card-bg); padding: 10px 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 15px; display: flex; justify-content: center; }
+        .btn-recipe-link { display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%; background-color: var(--recipe-color); color: white; text-decoration: none; font-weight: bold; font-size: 0.9rem; padding: 10px; border-radius: 8px; text-align: center; box-shadow: 0 2px 4px rgba(255, 107, 107, 0.2); transition: opacity 0.2s; }
+        button { cursor: pointer; border: none; border-radius: 8px; padding: 8px 14px; font-weight: bold; font-size: 0.9rem; }
         .btn-main { background-color: var(--primary-color); color: #fff; }
-        .btn-main:hover { opacity: 0.9; }
         .btn-secondary { background-color: #e0e0e0; color: #333; }
         .btn-sync { background-color: #27ae60; color: white; }
-
-        .sync-status-bar {
-            font-size: 0.8rem;
-            font-weight: bold;
-            color: #27ae60;
-            background: #e8f5e9;
-            padding: 6px 12px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
+        .sync-status-bar { font-size: 0.8rem; font-weight: bold; color: #27ae60; background: #e8f5e9; padding: 6px 12px; border-radius: 8px; margin-bottom: 15px; text-align: center; }
         .page { display: none; }
         .page.active { display: block; }
-
-        /* カレンダー */
-        .calendar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin: 15px 0 10px 0;
-        }
+        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin: 15px 0 10px 0; }
         .calendar-title { font-size: 1.2rem; font-weight: bold; }
-        .calendar-table {
-            width: 100%;
-            background: var(--card-bg);
-            border-radius: 12px;
-            border-collapse: collapse;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            overflow: hidden;
-        }
-        .calendar-table th, .calendar-table td {
-            width: 14.28%;
-            text-align: center;
-            padding: 12px 0;
-            position: relative;
-        }
+        .calendar-table { width: 100%; background: var(--card-bg); border-radius: 12px; border-collapse: collapse; box-shadow: 0 2px 8px rgba(0,0,0,0.04); overflow: hidden; }
+        .calendar-table th, .calendar-table td { width: 14.28%; text-align: center; padding: 12px 0; position: relative; }
         .calendar-table th { font-size: 0.8rem; color: #777; background: #f9f9f9; }
         .calendar-table td { font-size: 1rem; height: 45px; cursor: pointer; }
-        .calendar-table td:active { background: #f0f0f0; }
-        .calendar-table td.empty { cursor: default; }
-        .calendar-table td.empty:active { background: none; }
-        
-        .dot {
-            position: absolute;
-            bottom: 4px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 5px;
-            height: 5px;
-            background-color: var(--primary-color);
-            border-radius: 50%;
-        }
-        .calendar-table td.today {
-            background-color: var(--primary-light);
-            font-weight: bold;
-            border-radius: 8px;
-        }
-
-        /* 詳細画面 */
-        .detail-date-title {
-            font-size: 1.3rem;
-            font-weight: bold;
-            margin: 15px 0;
-            text-align: center;
-            color: #444;
-        }
-        .timezone-block {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-        }
-        .timezone-header {
-            font-size: 1.1rem;
-            font-weight: bold;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
+        .calendar-table td.today { background-color: var(--primary-light); font-weight: bold; border-radius: 8px; }
+        .dot { position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 5px; height: 5px; background-color: var(--primary-color); border-radius: 50%; }
+        .detail-date-title { font-size: 1.3rem; font-weight: bold; margin: 15px 0; text-align: center; color: #444; }
+        .timezone-block { background: var(--card-bg); border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .timezone-header { font-size: 1.1rem; font-weight: bold; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
         .tz-morning { color: var(--morning-color); border-bottom: 2px solid var(--morning-color); padding-bottom: 3px; }
         .tz-noon { color: var(--noon-color); border-bottom: 2px solid var(--noon-color); padding-bottom: 3px; }
         .tz-night { color: var(--night-color); border-bottom: 2px solid var(--night-color); padding-bottom: 3px; }
-        
-        .section-sub-title {
-            font-size: 0.85rem;
-            color: #666;
-            margin: 10px 0 5px 0;
-            font-weight: bold;
-        }
-        .item-card {
-            background: #f9fbf7;
-            border-left: 4px solid var(--primary-color);
-            padding: 10px;
-            border-radius: 0 8px 8px 0;
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-        }
+        .section-sub-title { font-size: 0.85rem; color: #666; margin: 10px 0 5px 0; font-weight: bold; }
+        .item-card { background: #f9fbf7; border-left: 4px solid var(--primary-color); padding: 10px; border-radius: 0 8px 8px 0; margin-bottom: 8px; font-size: 0.9rem; }
         .item-card-title { font-weight: bold; color: #111; margin-bottom: 3px; }
         .item-card-meta { font-size: 0.8rem; color: #666; display: flex; gap: 10px; }
         .item-card-meta span { background: #eef2ea; padding: 2px 6px; border-radius: 4px; }
         .item-card-memo { font-size: 0.85rem; color: #444; margin-top: 4px; line-height: 1.3; }
         .no-data-text { color: #aaa; font-size: 0.85rem; font-style: italic; padding: 5px 0; }
-
-        /* 編集画面 */
         .tab-container { display: flex; gap: 8px; margin-bottom: 15px; }
         .tab-btn { flex: 1; padding: 10px; background-color: #e0e0e0; color: #555; border-radius: 8px; }
         .tab-btn.active { background-color: var(--primary-color); color: white; }
-        
         .section-card { background: var(--card-bg); border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
         .section-title { font-size: 1.1rem; color: var(--primary-color); border-left: 4px solid var(--primary-color); padding-left: 8px; margin: 0 0 12px 0; }
-        
         .edit-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
         .edit-table th, .edit-table td { padding: 6px; border: 1px solid var(--border-color); text-align: left; }
         .edit-table th { background: #f5f5f5; font-size: 0.8rem; }
@@ -207,83 +68,54 @@
 <body>
 
 <div class="container">
-    <div id="sync-status" class="sync-status-bar">🔄 スプレッドシートからデータを取得中...</div>
+    <div id="sync-status" class="sync-status-bar">🔄 スプレッドシート同期中...</div>
 
-    <!-- ================= 1. メイン（カレンダー）画面 ================= -->
+    <!-- カレンダー画面 -->
     <div id="page-calendar" class="page active">
         <header>
             <h1>🌿 My Life Log</h1>
             <button id="btn-refresh" class="btn-secondary">🔄 更新</button>
         </header>
-
         <div class="sub-header-bar">
-            <a href="https://yunio-omaru.github.io/cook.github.io/" target="_blank" class="btn-recipe-link">
-                🍳 ゴリのレシピwebページを見る ◀
-            </a>
+            <a href="https://yunio-omaru.github.io/cook.github.io/" target="_blank" class="btn-recipe-link">🍳 ゴリのレシピwebページを見る ◀</a>
         </div>
-        
         <div class="calendar-header">
             <button id="btn-prev-month" class="btn-secondary">◀</button>
             <div id="calendar-month-title" class="calendar-title">2026年 6月</div>
             <button id="btn-next-month" class="btn-secondary">▶</button>
         </div>
-        
         <table class="calendar-table">
-            <thead>
-                <tr>
-                    <th style="color:red;">日</th><th>月</th><th>火</th><th>水</th><th>木</th><th>金</th><th style="color:blue;">土</th>
-                </tr>
-            </thead>
+            <thead><tr><th style="color:red;">日</th><th>月</th><th>火</th><th>水</th><th>木</th><th>金</th><th style="color:blue;">土</th></tr></thead>
             <tbody id="calendar-body"></tbody>
         </table>
     </div>
 
-    <!-- ================= 2. 詳細表示画面 ================= -->
+    <!-- 詳細画面 -->
     <div id="page-detail" class="page">
         <header>
             <button id="btn-detail-back" class="btn-secondary">◀ 戻る</button>
             <h1 id="header-detail-date">詳細表示</h1>
             <button id="btn-go-edit" class="btn-main">＋ 編集</button>
         </header>
-        
         <div id="detail-date-display" class="detail-date-title"></div>
-
-        <!-- 朝ブロック -->
-        <div class="timezone-block">
-            <div class="timezone-header tz-morning">☀️ 朝</div>
-            <div id="detail-morning-content"></div>
-        </div>
-
-        <!-- 昼ブロック -->
-        <div class="timezone-block">
-            <div class="timezone-header tz-noon">🌤️ 昼</div>
-            <div id="detail-noon-content"></div>
-        </div>
-
-        <!-- 夜ブロック -->
-        <div class="timezone-block">
-            <div class="timezone-header tz-night">🌙 晩</div>
-            <div id="detail-night-content"></div>
-        </div>
+        <div class="timezone-block"><div class="timezone-header tz-morning">☀️ 朝</div><div id="detail-morning-content"></div></div>
+        <div class="timezone-block"><div class="timezone-header tz-noon">🌤️ 昼</div><div id="detail-noon-content"></div></div>
+        <div class="timezone-block"><div class="timezone-header tz-night">🌙 晩</div><div id="detail-night-content"></div></div>
     </div>
 
-    <!-- ================= 3. 編集画面 ================= -->
+    <!-- 編集画面 -->
     <div id="page-edit" class="page">
         <header>
             <button id="btn-edit-back" class="btn-secondary">◀ 戻る</button>
             <h1 id="header-edit-date">ログ編集</h1>
             <button id="btn-edit-save" class="btn-sync">💾 保存</button>
         </header>
-
         <div style="margin: 10px 0; font-weight: bold; text-align: center;" id="edit-date-label">対象日: </div>
-
         <div class="tab-container">
             <button class="tab-btn active" data-time="morning">☀️ 朝</button>
             <button class="tab-btn" data-time="noon">🌤️ 昼</button>
             <button class="tab-btn" data-time="night">🌙 晩</button>
         </div>
-
-        <!-- スキンケア -->
         <div class="section-card" id="sec-skincare">
             <div class="section-title">🧴 スキンケア・美容</div>
             <table class="edit-table">
@@ -292,8 +124,6 @@
             </table>
             <button class="btn-main btn-add-row">＋ 行を追加</button>
         </div>
-
-        <!-- 食事 -->
         <div class="section-card" id="sec-meal">
             <div class="section-title">🍳 食事・サプリ</div>
             <table class="edit-table">
@@ -302,8 +132,6 @@
             </table>
             <button class="btn-main btn-add-row">＋ 行を追加</button>
         </div>
-
-        <!-- 運動 -->
         <div class="section-card" id="sec-exercise">
             <div class="section-title">🏃 運動・その他</div>
             <table class="edit-table">
@@ -318,39 +146,27 @@
 <div id="datalist-container"></div>
 
 <script>
-    // ⚠️ご自身のGASのウェブアプリURLに書き換えてください！
+    // ⚠️ ご自身のGASウェブアプリURLをここに貼り付けてください
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwZvHEkGI3Z3ZLoovwF4p6t9rbCtG-aMj3UERJF61-jP2dYawyuuecU1Eb60z9u9Wuy/exec";
 
-    let schedules = {}; 
-    let categories = []; let doneRows = [];
+    // 完全に新設計した変数名（過去の引数や変数を一切引き継がない）
+    let goriLogData = {}; 
     let selectedDateStr = ""; 
     let activeTimezone = "morning"; 
     let currentCalendarDate = new Date(); 
 
-    // 🧹 初期化用過去ログデータをゴリさんのスキンケアだけに綺麗に掃除
-    const PAST_JSON_LOGS = {
-        "2026-06-15_morning_skincare": [{"col1":"A･TRUE：オリジン ピュア バランシング クレンジングオイル","col2":"ポンプ2プッシュ","col3":"手に軽く広げたら頬から全顔優しくなじませる＞少し待って乳化"}],
-        "2026-06-15_noon_skincare": [{"col1":"A･TRUE：オリジン ピュア バランシング クレンジングオイル","col2":"ポンプ2プッシュ","col3":"手に軽く広げたら頬から全顔優しくなじませる＞少し待って乳化"}],
-        "2026-06-15_night_skincare": [{"col1":"A･TRUE：オリジン ピュア バランシング クレンジングオイル","col2":"ポンプ2プッシュ","col3":"手に軽く広げたら頬から全顔優しくなじませる＞少し待って乳化"}]
-    };
-
-    // 🧹 サジェストの単語リストからも余計な「迎撃」などを完全消去
-    let words = {
+    let goriWords = {
         skincare: {
-            col1: ["A･TRUE：オリジン ピュア バランシング クレンジングオイル"],
-            col2: ["ポンプ2プッシュ"],
-            col3: ["手に軽く広げたら頬から全顔優しくなじませる＞少し待って乳化"]
+            col1: ["A･TRUE：オリジン ピュア バランシング クレンジングオイル","松山油脂：アミノ酸浸透水","スキンフード：キャロットトナーパッド","Cosrx：RXザ・6ペプチドスキンブースターセラム","イズエンツリー：ヒアルロン酸トナー","Cosrx：RXザ・アルファアルブチン２","成分エディター：グリーントマトNMNポアリフティングアンプル","DRX：AZAクリア","ラ ロッシュ ポゼ：シカプラスト リペアクリーム B5+","皮膚科：ステロイドクリーム","マミー：ＵＶアクアミルク","牛乳石鹸：青箱","ビオレ：ビオレザフェイス(黄)"],
+            col2: ["ポンプ2プッシュ","ポンプ4プッシュ","1枚","10円玉大","スポイト：1~1.5","スポイト：1","米粒2粒x2","米粒3粒","100円玉大(立方)","1プッシュ"],
+            col3: ["手に軽く広げたら頬から全顔優しくなじませる＞少し待って乳化","両頬、おでこ、鼻 軽く手で押し塗り","優しく全顔ふき取り＞2枚に割いて両頬2～5分パック","両手を軽くすり合わせ、頬から全顔に押し塗り","手を皿にして指につけて、それぞれの頬、残りを全顔に押し塗り","両頬、おでこに少量ずつ点置き後、全顔になじむよう押し塗り(目の上など乾燥しやすいところは避ける)","赤みやかさかさ、ニキビ以外のぽつぽつ部分に点置き押し塗り","全身洗った後、最後に優しく洗顔","頬、鼻中心に全顔に優しく押し広げる＞30s～1min待ってすすぎ"]
         }, 
         meal: {col1:[], col2:[], col3:[]}, 
-        exercise: {col1:[], col2:[], col3:[]}
+        exercise: {col1:["ランニング"], col2:[], col3:["家から大橋駅"]}
     };
 
     document.addEventListener('DOMContentLoaded', () => {
-        // ローカルに古いゴミデータが残っていたら一旦消す処理
-        localStorage.removeItem('ss_schedules2');
-        localStorage.removeItem('lifeLogWords');
-
-        schedules = Object.assign({}, PAST_JSON_LOGS);
+        localStorage.clear(); // 古いブラウザキャッシュも完全消去
 
         document.getElementById('btn-refresh').addEventListener('click', loadFromSpreadsheet);
         document.getElementById('btn-prev-month').addEventListener('click', () => changeMonth(-1));
@@ -389,64 +205,40 @@
         const year = currentCalendarDate.getFullYear();
         const month = currentCalendarDate.getMonth();
         document.getElementById('calendar-month-title').innerText = `${year}年 ${month + 1}月`;
-
         const firstDay = new Date(year, month, 1).getDay();
         const lastDate = new Date(year, month + 1, 0).getDate();
         const todayStr = new Date().toISOString().split('T')[0];
-
         const tbody = document.getElementById('calendar-body');
         tbody.innerHTML = '';
-
         let row = document.createElement('tr');
         for (let i = 0; i < firstDay; i++) {
-            let cell = document.createElement('td');
-            cell.classList.add('empty');
-            row.appendChild(cell);
+            let cell = document.createElement('td'); cell.classList.add('empty'); row.appendChild(cell);
         }
-
         for (let date = 1; date <= lastDate; date++) {
-            if (row.children.length === 7) {
-                tbody.appendChild(row);
-                row = document.createElement('tr');
-            }
-
-            let cell = document.createElement('td');
-            cell.innerText = date;
-
+            if (row.children.length === 7) { tbody.appendChild(row); row = document.createElement('tr'); }
+            let cell = document.createElement('td'); cell.innerText = date;
             const dStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
             if (dStr === todayStr) cell.classList.add('today');
-
             if (hasDataOnDate(dStr)) {
-                let dot = document.createElement('div');
-                dot.classList.add('dot');
-                cell.appendChild(dot);
+                let dot = document.createElement('div'); dot.classList.add('dot'); cell.appendChild(dot);
             }
-
             cell.addEventListener('click', () => openDetailPage(dStr));
             row.appendChild(cell);
         }
-
         while (row.children.length < 7) {
-            let cell = document.createElement('td');
-            cell.classList.add('empty');
-            row.appendChild(cell);
+            let cell = document.createElement('td'); cell.classList.add('empty'); row.appendChild(cell);
         }
         tbody.appendChild(row);
     }
 
-    function changeMonth(diff) {
-        currentCalendarDate.setMonth(currentCalendarDate.getMonth() + diff);
-        renderCalendar();
-    }
+    function changeMonth(diff) { currentCalendarDate.setMonth(currentCalendarDate.getMonth() + diff); renderCalendar(); }
 
     function hasDataOnDate(dateStr) {
         const tzs = ['morning', 'noon', 'night'];
         const secs = ['skincare', 'meal', 'exercise'];
         for (let tz of tzs) {
             for (let sec of secs) {
-                if (schedules[`${dateStr}_${tz}_${sec}`] && schedules[`${dateStr}_${tz}_${sec}`].length > 0) {
-                    return true;
-                }
+                if (goriLogData[`${dateStr}_${tz}_${sec}`] && goriLogData[`${dateStr}_${tz}_${sec}`].length > 0) return true;
             }
         }
         return false;
@@ -456,48 +248,28 @@
         selectedDateStr = dateStr;
         const parts = dateStr.split('-');
         document.getElementById('detail-date-display').innerText = `${parts[0]}年${parts[1]}月${parts[2]}日`;
-        
-        renderDetailBlock('morning');
-        renderDetailBlock('noon');
-        renderDetailBlock('night');
-
+        renderDetailBlock('morning'); renderDetailBlock('noon'); renderDetailBlock('night');
         showPage('page-detail');
     }
 
     function renderDetailBlock(tz) {
-        const container = document.getElementById(`detail-${tz}-content`);
-        container.innerHTML = '';
-        
+        const container = document.getElementById(`detail-${tz}-content`); container.innerHTML = '';
         const secs = { skincare: '🧴 スキンケア', meal: '🍳 食事', exercise: '🏃 運動' };
         let hasAnyData = false;
-
         for (let [secKey, secName] of Object.entries(secs)) {
-            const items = schedules[`${selectedDateStr}_${tz}_${secKey}`] || [];
+            const items = goriLogData[`${selectedDateStr}_${tz}_${secKey}`] || [];
             const validItems = items.filter(i => i.col1 || i.col2 || i.col3);
-
             if (validItems.length > 0) {
                 hasAnyData = true;
-                let secTitle = document.createElement('div');
-                secTitle.classList.add('section-sub-title');
-                secTitle.innerText = secName;
-                container.appendChild(secTitle);
-
+                let secTitle = document.createElement('div'); secTitle.classList.add('section-sub-title'); secTitle.innerText = secName; container.appendChild(secTitle);
                 validItems.forEach(item => {
-                    let card = document.createElement('div');
-                    card.classList.add('item-card');
-                    card.innerHTML = `
-                        <div class="item-card-title">${item.col1 || '---'}</div>
-                        ${item.col2 ? `<div class="item-card-meta"><span>${item.col2}</span></div>` : ''}
-                        ${item.col3 ? `<div class="item-card-memo">${item.col3.replace(/\n/g, '<br>')}</div>` : ''}
-                    `;
+                    let card = document.createElement('div'); card.classList.add('item-card');
+                    card.innerHTML = `<div class="item-card-title">${item.col1 || '---'}</div>${item.col2 ? `<div class="item-card-meta"><span>${item.col2}</span></div>` : ''}${item.col3 ? `<div class="item-card-memo">${item.col3.replace(/\n/g, '<br>')}</div>` : ''}`;
                     container.appendChild(card);
                 });
             }
         }
-
-        if (!hasAnyData) {
-            container.innerHTML = '<div class="no-data-text">記録はありません</div>';
-        }
+        if (!hasAnyData) container.innerHTML = '<div class="no-data-text">記録はありません</div>';
     }
 
     function openEditPage() {
@@ -505,38 +277,24 @@
         activeTimezone = 'morning';
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.querySelector('.tab-btn[data-time="morning"]').classList.add('active');
-        
-        renderEditSections();
-        showPage('page-edit');
+        renderEditSections(); showPage('page-edit');
     }
 
     function renderEditSections() {
         const secs = ['skincare', 'meal', 'exercise'];
         secs.forEach(sec => {
-            const tbody = document.querySelector(`#sec-${sec} .log-tbody`);
-            tbody.innerHTML = '';
-            const items = schedules[`${selectedDateStr}_${activeTimezone}_${sec}`] || [];
-            
-            if(items.length === 0) {
-                addEditRow(sec, '', '', '');
-            } else {
-                items.forEach(item => addEditRow(sec, item.col1 || '', item.col2 || '', item.col3 || ''));
-            }
+            const tbody = document.querySelector(`#sec-${sec} .log-tbody`); tbody.innerHTML = '';
+            const items = goriLogData[`${selectedDateStr}_${activeTimezone}_${sec}`] || [];
+            if(items.length === 0) { addEditRow(sec, '', '', ''); } 
+            else { items.forEach(item => addEditRow(sec, item.col1 || '', item.col2 || '', item.col3 || '')); }
         });
     }
 
     function addEditRow(secKey, c1, c2, c3) {
         const tbody = document.querySelector(`#sec-${secKey} .log-tbody`);
         const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td><input type="text" class="col1" value="${c1}" list="suggest-${secKey}-col1"></td>
-            <td><input type="text" class="col2" value="${c2}" list="suggest-${secKey}-col2"></td>
-            <td><input type="text" class="col3" value="${c3}" list="suggest-${secKey}-col3"></td>
-            <td><button class="btn-action btn-delete">削除</button></td>
-        `;
-        tr.querySelector('.btn-delete').addEventListener('click', () => {
-            tr.remove();
-        });
+        tr.innerHTML = `<td><input type="text" class="col1" value="${c1}" list="suggest-${secKey}-col1"></td><td><input type="text" class="col2" value="${c2}" list="suggest-${secKey}-col2"></td><td><input type="text" class="col3" value="${c3}" list="suggest-${secKey}-col3"></td><td><button class="btn-action btn-delete">削除</button></td>`;
+        tr.querySelector('.btn-delete').addEventListener('click', () => tr.remove());
         tbody.appendChild(tr);
     }
 
@@ -551,58 +309,49 @@
                 const col3 = row.querySelector('.col3').value.trim();
                 if (col1 || col2 || col3) data.push({ col1, col2, col3 });
             });
-
             const dataKey = `${selectedDateStr}_${activeTimezone}_${sec}`;
-            if (data.length === 0) {
-                delete schedules[dataKey];
-            } else {
-                schedules[dataKey] = data;
+            if (data.length === 0) { delete goriLogData[dataKey]; } 
+            else {
+                goriLogData[dataKey] = data;
                 data.forEach(item => {
-                    if (item.col1 && !words[sec].col1.includes(item.col1)) words[sec].col1.push(item.col1);
-                    if (item.col2 && !words[sec].col2.includes(item.col2)) words[sec].col2.push(item.col2);
-                    if (item.col3 && !words[sec].col3.includes(item.col3)) words[sec].col3.push(item.col3);
+                    if (item.col1 && !goriWords[sec].col1.includes(item.col1)) goriWords[sec].col1.push(item.col1);
+                    if (item.col2 && !goriWords[sec].col2.includes(item.col2)) goriWords[sec].col2.push(item.col2);
+                    if (item.col3 && !goriWords[sec].col3.includes(item.col3)) goriWords[sec].col3.push(item.col3);
                 });
             }
         });
 
-        localStorage.setItem('ss_schedules2', JSON.stringify(schedules));
-        localStorage.setItem('lifeLogWords', JSON.stringify(words));
-        buildDatalists();
-        
-        openDetailPage(selectedDateStr);
-        saveToSpreadsheet();
+        localStorage.setItem('goriLogData', JSON.stringify(goriLogData));
+        localStorage.setItem('goriWords', JSON.stringify(goriWords));
+        buildDatalists(); openDetailPage(selectedDateStr); saveToSpreadsheet();
     }
 
     async function loadFromSpreadsheet() {
-        document.getElementById('sync-status').innerText = "🔄 スプレッドシートからデータを取得中...";
+        document.getElementById('sync-status').innerText = "🔄 スプレッドシートからデータを同期中...";
         try {
             const res = await fetch(GAS_API_URL);
             if(res.ok) {
                 const data = await res.json();
-                // スプシ側にデータがあればマージするが、真っ白なら初期値を使用
-                if (data.schedules && Object.keys(data.schedules).length > 0) {
-                    schedules = Object.assign({}, schedules, data.schedules);
+                // 迎撃乙女の古い変数(schedulesやcategories)は存在すら無視し、goriLogDataだけをクリーンに読み込む
+                if (data.goriLogData && Object.keys(data.goriLogData).length > 0) {
+                    goriLogData = data.goriLogData;
                 }
-                if (data.words) words = Object.assign({}, words, data.words);
-                
+                if (data.goriWords) goriWords = data.goriWords;
                 renderCalendar();
-                if (document.getElementById('page-detail').classList.contains('active')) {
-                    openDetailPage(selectedDateStr);
-                }
-                document.getElementById('sync-status').innerText = "✅ スプレッドシート同期完了";
+                if (document.getElementById('page-detail').classList.contains('active')) openDetailPage(selectedDateStr);
+                document.getElementById('sync-status').innerText = "✅ 同期完了（クリーン版）";
             }
         } catch(e) {
-            document.getElementById('sync-status').innerText = "❌ 読み込み同期エラー (ローカルで稼働)";
+            document.getElementById('sync-status').innerText = "❌ 読み込み同期エラー";
         }
     }
 
     async function saveToSpreadsheet() {
         document.getElementById('sync-status').innerText = "💾 クラウドに保存中...";
         try {
-            await fetch(GAS_API_URL, { 
-                method: "POST", 
-                body: JSON.stringify({ categories, schedules, doneRows, words }) 
-            });
+            // ゴリさん専用の変数だけを完全に新規に送信。スプシのA1を強制上書き
+            const payload = { goriLogData: goriLogData, goriWords: goriWords };
+            await fetch(GAS_API_URL, { method: "POST", body: JSON.stringify(payload) });
             document.getElementById('sync-status').innerText = "✅ スプレッドシートに保存しました！";
         } catch(e) {
             document.getElementById('sync-status').innerText = "❌ クラウド保存エラー";
@@ -610,19 +359,13 @@
     }
 
     function buildDatalists() {
-        const container = document.getElementById('datalist-container');
-        container.innerHTML = '';
+        const container = document.getElementById('datalist-container'); container.innerHTML = '';
         const secs = ['skincare', 'meal', 'exercise'];
         secs.forEach(sec => {
             for (let i = 1; i <= 3; i++) {
-                const dl = document.createElement('datalist');
-                dl.id = `suggest-${sec}-col${i}`;
-                const wordList = words[sec][`col${i}`] || [];
-                wordList.forEach(w => {
-                    const opt = document.createElement('option');
-                    opt.value = w;
-                    dl.appendChild(opt);
-                });
+                const dl = document.createElement('datalist'); dl.id = `suggest-${sec}-col${i}`;
+                const wordList = goriWords[sec][`col${i}`] || [];
+                wordList.forEach(w => { const opt = document.createElement('option'); opt.value = w; dl.appendChild(opt); });
                 container.appendChild(dl);
             }
         });
